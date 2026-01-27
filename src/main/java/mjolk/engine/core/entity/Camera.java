@@ -6,6 +6,9 @@ public class Camera {
 
     private Vector3f position, rotation;
 
+    /**
+     * Instances a new camera
+     */
     public Camera() {
         position = new Vector3f(0, 0, 0);
         rotation = new Vector3f(0, 0, 0);
