@@ -10,6 +10,9 @@ public class Material {
     private float reflectance;
     private Texture texture;
 
+    /**
+     * Creates a material for the lighting engine
+     */
     public Material() {
         this.ambientColour = DEFAULT_COLOUR;
         this.diffuseColour = DEFAULT_COLOUR;
