@@ -1,5 +1,6 @@
 package mjolk.engine.core.managers;
 
+import mjolk.engine.core.entity.Camera;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -8,6 +9,7 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
 
+import static mjolk.engine.core.entity.Camera.Perspective.NORMAL;
 import static mjolk.engine.core.utils.Constants.*;
 import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.opengl.GL11.glEnable;
@@ -173,6 +175,21 @@ public class WindowManager {
     public Matrix4f updateProjectionMatrix() {
         float aspectRatio = (float) width / (float) height;
         return projectionMatrix.setPerspective(FOV, aspectRatio, Z_NEAR, Z_FAR);
+    }
+
+    public Matrix4f updateProjectionMatrix(Camera camera) {
+        float aspectRatio = (float) width / (float) height;
+
+        if (camera.getPerspective() == NORMAL) {
+            float fov = (float) Math.toRadians(camera.getZoom());
+
+            return projectionMatrix.setPerspective(fov, aspectRatio, Z_NEAR, Z_FAR);
+        } else {
+            float orthoHeight = camera.getZoom() / 60f;
+            float orthoWidth = orthoHeight * aspectRatio;
+
+            return projectionMatrix.setOrtho(-orthoWidth, orthoWidth, -orthoHeight, orthoHeight, Z_NEAR, Z_FAR);
+        }
     }
 
     public Matrix4f updateProjectionMatrix(Matrix4f projectionMatrix, int width, int height) {

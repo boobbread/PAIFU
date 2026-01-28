@@ -5,6 +5,13 @@ import org.joml.Vector3f;
 public class Camera {
 
     private Vector3f position, rotation;
+    private float zoom = 60f;
+    public enum Perspective {
+        NORMAL,
+        ORTHOGRAPHIC
+    }
+
+    private Perspective perspective;
 
     /**
      * Instances a new camera
@@ -12,11 +19,25 @@ public class Camera {
     public Camera() {
         position = new Vector3f(0, 0, 0);
         rotation = new Vector3f(0, 0, 0);
+        perspective = Perspective.NORMAL;
     }
 
     public Camera(Vector3f position, Vector3f rotation) {
         this.position = position;
         this.rotation = rotation;
+        this.perspective = Perspective.NORMAL;
+    }
+
+    public Camera(Vector3f position, Vector3f rotation, Perspective perspective) {
+        this.position = position;
+        this.rotation = rotation;
+        this.perspective = perspective;
+    }
+
+    public Camera(Perspective perspective) {
+        position = new Vector3f(0, 0, 0);
+        rotation = new Vector3f(0, 0, 0);
+        this.perspective = perspective;
     }
 
     public void movePosition(float x, float y, float z) {
@@ -57,5 +78,21 @@ public class Camera {
 
     public Vector3f getRotation() {
         return rotation;
+    }
+
+    public float getZoom() {
+        return zoom;
+    }
+
+    public void setZoom(float zoom) {
+        this.zoom = zoom;
+    }
+
+    public Perspective getPerspective() {
+        return perspective;
+    }
+
+    public void setPerspective(Perspective perspective) {
+        this.perspective = perspective;
     }
 }

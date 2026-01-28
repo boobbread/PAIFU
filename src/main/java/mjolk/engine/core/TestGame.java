@@ -6,11 +6,16 @@ import mjolk.engine.core.io.ILogic;
 import mjolk.engine.core.io.MouseInput;
 import mjolk.engine.core.lighting.DirectionLight;
 import mjolk.engine.core.lighting.PointLight;
-import mjolk.engine.core.managers.RenderManager;
+import mjolk.engine.core.lighting.SpotLight;
+import mjolk.engine.core.rendering.RenderManager;
 import mjolk.engine.core.managers.WindowManager;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 import static mjolk.engine.core.utils.Constants.CAMERA_STEP;
 import static mjolk.engine.core.utils.Constants.MOUSE_SENSITIVITY;
@@ -21,20 +26,21 @@ public class TestGame implements ILogic {
     private final WindowManager window;
     private final ObjectLoader loader;
 
-    private Entity entity;
+    private List<Entity> entities;
     private Camera camera;
 
     Vector3f cameraInc;
 
     private float lightAngle;
     private DirectionLight directionLight;
-    private PointLight pointLight;
+    private PointLight[] pointLights;
+    private SpotLight[] spotLights;
 
     public TestGame() {
         renderer = new RenderManager();
         window = Launcher.getWindow();
         loader = new ObjectLoader();
-        camera = new Camera();
+        camera = new Camera(Camera.Perspective.ORTHOGRAPHIC);
         cameraInc = new Vector3f(0, 0, 0);
         lightAngle = -90f;
     }
@@ -43,21 +49,43 @@ public class TestGame implements ILogic {
     public void init() throws Exception {
         renderer.init();
 
-        Model model = loader.loadOBJModel("models/bunny.obj");
+        Model model = loader.loadOBJModel("models/church_2.obj");
         model.setTexture(new Texture(loader.loadTexture("textures/colour.png")), .02f);
 
-        entity = new Entity(model);
+        entities = new ArrayList<>();
+//        Random rnd = new Random();
+//        for (int i = 0; i < 20; i++) {
+//            float x = (rnd.nextFloat() * 5) - 2.5f;
+//            float y = (rnd.nextFloat() * 5) - 2.5f;
+//            float z = (rnd.nextFloat() * 5) - 2.5f;
+//
+//            entities.add(new Entity(1, new Vector3f(rnd.nextFloat() * 180, rnd.nextFloat() * 180, 0), new Vector3f(x, y, z), model));
+//        }
+
+        entities.add(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(0, 0, 0), model));
         camera.setPosition(0,0,5);
 
         float lightIntensity = 2.0f;
 
-        Vector3f lightPosition = new Vector3f(5, 0, 3.2f);
+        // Point light
+        Vector3f lightPosition = new Vector3f(0, 4, 0);
         Vector3f lightColour = new Vector3f(1, 1, 1);
-        pointLight = new PointLight(lightColour, lightPosition, lightIntensity);
+        PointLight pointLight = new PointLight(lightColour, lightPosition, lightIntensity);
 
+        // Spotlight
+        Vector3f coneDirection = new Vector3f(0, 0, 5);
+        float cutoff = (float) Math.cos(Math.toRadians(180));
+        SpotLight spotLight = new SpotLight(new PointLight(lightColour, new Vector3f(0,0,1f),
+                0f, 0, 0, 1), coneDirection, cutoff);
+
+        // Directional light
         lightPosition = new Vector3f(0, 0, 10f);
         lightColour = new Vector3f(1, 1, 1);
-        directionLight = new DirectionLight(lightColour, lightPosition, lightIntensity);
+        directionLight = new DirectionLight(lightColour, lightPosition, 0f);
+
+        pointLights = new PointLight[]{pointLight};
+        spotLights = new SpotLight[]{spotLight};
+
     }
 
     @Override
@@ -67,15 +95,12 @@ public class TestGame implements ILogic {
         if (window.isKeyPressed(GLFW.GLFW_KEY_W)) {
             cameraInc.z = -1;
         }
-
         if (window.isKeyPressed(GLFW.GLFW_KEY_S)) {
             cameraInc.z = 1;
         }
-
         if (window.isKeyPressed(GLFW.GLFW_KEY_A)) {
             cameraInc.x = -1;
         }
-
         if (window.isKeyPressed(GLFW.GLFW_KEY_D)) {
             cameraInc.x = 1;
         }
@@ -83,25 +108,29 @@ public class TestGame implements ILogic {
         if (window.isKeyPressed(GLFW.GLFW_KEY_LEFT_SHIFT)) {
             cameraInc.y = -1;
         }
-
         if (window.isKeyPressed(GLFW.GLFW_KEY_SPACE)) {
             cameraInc.y = 1;
         }
 
         if (window.isKeyPressed(GLFW.GLFW_KEY_LEFT)) {
-            pointLight.getPosition().x -= 0.05f;
+            pointLights[0].getPosition().x -= 0.05f;
         }
-
         if (window.isKeyPressed(GLFW.GLFW_KEY_RIGHT)) {
-            pointLight.getPosition().x += 0.05f;
+            pointLights[0].getPosition().x += 0.05f;
         }
-
         if (window.isKeyPressed(GLFW.GLFW_KEY_UP)) {
-            pointLight.getPosition().y += 0.05f;
+            pointLights[0].getPosition().y += 0.05f;
+        }
+        if (window.isKeyPressed(GLFW.GLFW_KEY_DOWN)) {
+            pointLights[0].getPosition().y -= 0.05f;
         }
 
-        if (window.isKeyPressed(GLFW.GLFW_KEY_DOWN)) {
-            pointLight.getPosition().y -= 0.05f;
+        float lightPos = spotLights[0].getPointLight().getPosition().z;
+        if (window.isKeyPressed(GLFW.GLFW_KEY_N)) {
+            spotLights[0].getPointLight().getPosition().z += 0.05f;
+        }
+        if (window.isKeyPressed(GLFW.GLFW_KEY_M)) {
+            spotLights[0].getPointLight().getPosition().z -= 0.05f;
         }
     }
 
@@ -115,23 +144,14 @@ public class TestGame implements ILogic {
             camera.moveRotation(rotVec.x * MOUSE_SENSITIVITY * interval, rotVec.y * MOUSE_SENSITIVITY * interval, 0);
         }
 
-        // entity.incRotation(0.0f, 0.25f, 0.0f);
-
-        lightAngle += 0.15f;
-
-        directionLight.setIntensity(1);
-        directionLight.getColour().x = 1;
-        directionLight.getColour().y = 1;
-        directionLight.getColour().z = 1;
-
-        double angRad = Math.toRadians(lightAngle);
-        directionLight.getDirection().z = (float) Math.sin(angRad);
-        directionLight.getDirection().y = (float) Math.cos(angRad);
+        for (Entity e : entities) {
+            renderer.processEntities(e);
+        }
     }
 
     @Override
     public void render() {
-        renderer.render(entity, camera, directionLight, pointLight);
+        renderer.render(camera, directionLight, pointLights, spotLights);
     }
 
     @Override
