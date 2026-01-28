@@ -33,9 +33,9 @@ public class ShaderManager {
     public void createUniform(String uniformName) throws Exception {
         int uniformLocation = GL20.glGetUniformLocation(programID, uniformName);
 
-        if (uniformLocation < 0) {
-            throw new Exception("Could not get uniform " + uniformName);
-        }
+//        if (uniformLocation < 0) {
+//            throw new Exception("Could not get uniform " + uniformName);
+//        }
 
         uniforms.put(uniformName, uniformLocation);
     }

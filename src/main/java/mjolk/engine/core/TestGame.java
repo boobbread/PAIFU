@@ -40,7 +40,7 @@ public class TestGame implements ILogic {
         renderer = new RenderManager();
         window = Launcher.getWindow();
         loader = new ObjectLoader();
-        camera = new Camera(Camera.Perspective.ORTHOGRAPHIC);
+        camera = new Camera();
         cameraInc = new Vector3f(0, 0, 0);
         lightAngle = -90f;
     }
@@ -62,26 +62,25 @@ public class TestGame implements ILogic {
 //            entities.add(new Entity(1, new Vector3f(rnd.nextFloat() * 180, rnd.nextFloat() * 180, 0), new Vector3f(x, y, z), model));
 //        }
 
-        entities.add(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(0, 0, 0), model));
+        entities.add(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1, 0, 1), model));
         camera.setPosition(0,0,5);
 
-        float lightIntensity = 2.0f;
-
         // Point light
-        Vector3f lightPosition = new Vector3f(0, 4, 0);
+        Vector3f lightPosition = new Vector3f(1, 2, 1);
         Vector3f lightColour = new Vector3f(1, 1, 1);
-        PointLight pointLight = new PointLight(lightColour, lightPosition, lightIntensity);
+        PointLight pointLight = new PointLight(lightColour, lightPosition, 0f);
 
         // Spotlight
-        Vector3f coneDirection = new Vector3f(0, 0, 5);
+        Vector3f coneDirection = new Vector3f(0, -1, 0);
         float cutoff = (float) Math.cos(Math.toRadians(180));
-        SpotLight spotLight = new SpotLight(new PointLight(lightColour, new Vector3f(0,0,1f),
-                0f, 0, 0, 1), coneDirection, cutoff);
+        SpotLight spotLight = new SpotLight(new PointLight(lightColour, new Vector3f(1,2,1),
+                1f, 0, 0, 0.5f), coneDirection, cutoff);
 
         // Directional light
-        lightPosition = new Vector3f(0, 0, 10f);
+        lightPosition = new Vector3f(0, 3, 0f);
         lightColour = new Vector3f(1, 1, 1);
-        directionLight = new DirectionLight(lightColour, lightPosition, 0f);
+        directionLight = new DirectionLight(lightColour, lightPosition, 1f);
+        directionLight.setDirection(new Vector3f(0, 0, 0));
 
         pointLights = new PointLight[]{pointLight};
         spotLights = new SpotLight[]{spotLight};
@@ -127,10 +126,10 @@ public class TestGame implements ILogic {
 
         float lightPos = spotLights[0].getPointLight().getPosition().z;
         if (window.isKeyPressed(GLFW.GLFW_KEY_N)) {
-            spotLights[0].getPointLight().getPosition().z += 0.05f;
+            spotLights[0].getPointLight().getPosition().y += 0.005f;
         }
         if (window.isKeyPressed(GLFW.GLFW_KEY_M)) {
-            spotLights[0].getPointLight().getPosition().z -= 0.05f;
+            spotLights[0].getPointLight().getPosition().y -= 0.005f;
         }
     }
 

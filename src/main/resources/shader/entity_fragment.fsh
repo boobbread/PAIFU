@@ -129,5 +129,7 @@ void main() {
         }
     }
 
+//    fragColour = vec4(normalize(fragNormal) * 0.5 + 0.5, 1.0);
     fragColour = ambientC * vec4(ambientLight, 1) + diffuseSpecularComp;
+
 }

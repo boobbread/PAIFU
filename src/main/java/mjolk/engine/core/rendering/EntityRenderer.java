@@ -1,9 +1,7 @@
 package mjolk.engine.core.rendering;
 
 import mjolk.engine.Launcher;
-import mjolk.engine.core.entity.Camera;
-import mjolk.engine.core.entity.Entity;
-import mjolk.engine.core.entity.Model;
+import mjolk.engine.core.entity.*;
 import mjolk.engine.core.lighting.DirectionLight;
 import mjolk.engine.core.lighting.PointLight;
 import mjolk.engine.core.lighting.SpotLight;
