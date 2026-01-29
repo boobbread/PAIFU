@@ -73,7 +73,7 @@ public class TestGame implements ILogic {
         // Spotlight
         Vector3f coneDirection = new Vector3f(0, -1, 0);
         float cutoff = (float) Math.cos(Math.toRadians(180));
-        SpotLight spotLight = new SpotLight(new PointLight(lightColour, new Vector3f(1,2,1),
+        SpotLight spotLight = new SpotLight(new PointLight(lightColour, new Vector3f(1,1.8f,1),
                 1f, 0, 0, 0.5f), coneDirection, cutoff);
 
         // Directional light

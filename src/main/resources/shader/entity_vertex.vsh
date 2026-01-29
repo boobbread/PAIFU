@@ -7,10 +7,12 @@ in vec3 normal;
 out vec2 fragTextureCoord;
 out vec3 fragNormal;
 out vec3 fragPos;
+out vec4 fragLVPos;
 
 uniform mat4 transformationMatrix;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
+uniform mat4 lightViewProjectionMatrix;
 
 void main() {
     vec4 worldPos = transformationMatrix * vec4(position, 1.0);
@@ -19,4 +21,6 @@ void main() {
     fragNormal = normalize((transformationMatrix * vec4(normal, 0.0)).xyz);
     fragPos = worldPos.xyz;
     fragTextureCoord = textureCoords;
+    fragLVPos = lightViewProjectionMatrix * worldPos;
+    gl_Position = projectionMatrix * viewMatrix * worldPos;
 }

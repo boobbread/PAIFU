@@ -6,6 +6,8 @@ const int MAX_SPOT_LIGHTS = 5;
 in vec2 fragTextureCoord;
 in vec3 fragNormal;
 in vec3 fragPos;
+in vec4 fragLVPos;
+in mat4 fragMVMatrix;
 
 out vec4 fragColour;
 
@@ -47,6 +49,8 @@ uniform float specularPower;
 uniform DirectionalLight directionalLight;
 uniform PointLight pointLights[MAX_POINT_LIGHTS];
 uniform SpotLight spotLights[MAX_SPOT_LIGHTS];
+
+uniform sampler2DShadow shadowMap;
 
 vec4 ambientC;
 vec4 diffuseC;
@@ -92,10 +96,30 @@ vec4 calcPointLight(PointLight light, vec3 position, vec3 normal) {
     return (light_colour / attenuationInv);
 }
 
+float calcShadow(vec3 to_light_dir) {
+    vec3 projCoords = fragLVPos.xyz / fragLVPos.w;
+    projCoords = projCoords * 0.5 + 0.5;
+
+    if (projCoords.x < 0.0 || projCoords.x > 1.0 ||
+    projCoords.y < 0.0 || projCoords.y > 1.0 ||
+    projCoords.z > 1.0) {
+        return 1.0;
+    }
+
+    float bias = max(
+    0.0005 * (1.0 - dot(normalize(fragNormal), normalize(to_light_dir))),
+    0.0001
+    );
+
+
+    return texture(shadowMap, vec3(projCoords.xy, projCoords.z - bias));
+}
+
 vec4 calcSpotLight(SpotLight light, vec3 position, vec3 normal) {
     vec3 light_dir = light.pl.position - position;
     vec3 to_light_dir = normalize(light_dir);
     vec3 from_light_dir = -to_light_dir;
+
     float spot_alpha = dot(from_light_dir, normalize(light.coneDirection));
 
     vec4 colour = vec4(0, 0, 0, 0);
@@ -103,6 +127,9 @@ vec4 calcSpotLight(SpotLight light, vec3 position, vec3 normal) {
     if (spot_alpha > light.cutoff) {
         colour = calcPointLight(light.pl, position, normal);
         colour *= (1.0 - (1.0 - spot_alpha) / (1.0 - light.cutoff));
+
+        float shadow = calcShadow(to_light_dir);
+        colour *= shadow;
     }
 
     return colour;
@@ -130,6 +157,10 @@ void main() {
     }
 
 //    fragColour = vec4(normalize(fragNormal) * 0.5 + 0.5, 1.0);
-    fragColour = ambientC * vec4(ambientLight, 1) + diffuseSpecularComp;
+//    fragColour = ambientC * vec4(ambientLight, 1) + diffuseSpecularComp;
+
+    vec3 ndc = fragLVPos.xyz / fragLVPos.w;
+    fragColour = vec4(ndc * 0.5 + 0.5, 1.0);
+
 
 }
