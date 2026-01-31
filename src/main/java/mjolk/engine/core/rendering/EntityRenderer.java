@@ -16,12 +16,13 @@ import org.lwjgl.opengl.GL13;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE1;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
 import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 
@@ -41,8 +42,12 @@ public class EntityRenderer implements IRenderer {
 
     @Override
     public void init() throws Exception {
-        shader.createVertexShader(Utils.loadResource("/shader/entity_vertex.vsh"));
-        shader.createFragmentShader(Utils.loadResource("/shader/entity_fragment.fsh"));
+        System.out.println("EntityRenderer INIT");
+        String srcVert = Utils.loadShader("/shader/entity_vertex.vsh");
+        String srcFrag = Utils.loadShader("/shader/entity_fragment.fsh");
+
+        shader.createVertexShader(srcVert);
+        shader.createFragmentShader(srcFrag);
         shader.link();
 
         shader.createUniform("textureSampler");
@@ -77,7 +82,11 @@ public class EntityRenderer implements IRenderer {
         shader.bind();
 
         shader.setUniform("projectionMatrix", Launcher.getWindow().updateProjectionMatrix(camera));
-        shader.setUniform("shadowMap", depthMap.getId());
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, depthMap.getId());
+
+        shader.setUniform("shadowMap", 1);
+
         shader.setUniform("lightViewProjectionMatrix", lightViewProjectionMatrix);
 
         RenderManager.renderLights(pointLights, spotLights, directionLight, shader);
@@ -106,7 +115,7 @@ public class EntityRenderer implements IRenderer {
 
         shader.setUniform("material", model.getMaterial());
 
-        GL13.glActiveTexture(GL13.GL_TEXTURE0);
+        glActiveTexture(GL13.GL_TEXTURE0);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, model.getTexture().getId());
     }
 
@@ -153,39 +162,50 @@ public class EntityRenderer implements IRenderer {
 
     private void setupDepthShader() throws Exception {
         depthShader = new ShaderManager();
-        depthShader.createVertexShader(Utils.loadResource("/shader/depth_vertex.vsh"));
-        depthShader.createFragmentShader(Utils.loadResource("/shader/depth_fragment.fsh"));
+        String srcVert = Utils.loadResource("/shader/depth_vertex.vsh");
+        String srcFrag = Utils.loadResource("/shader/depth_fragment.fsh");
+        depthShader.createVertexShader(srcVert);
+        depthShader.createFragmentShader(srcFrag);
         depthShader.link();
 
         depthShader.createUniform("lightViewProjectionMatrix");
+        depthShader.createUniform("modelMatrix");
+
     }
 
     public void renderDepthMap(SpotLight spotLight) {
         glEnable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
         glBindFramebuffer(GL_FRAMEBUFFER, shadowMap.getDepthMapFBO());
         glViewport(0, 0, ShadowMap.SHADOW_MAP_WIDTH, ShadowMap.SHADOW_MAP_HEIGHT);
 
         glClear(GL_DEPTH_BUFFER_BIT);
         depthShader.bind();
 
-        Vector3f coneDir = spotLight.getConeDirection();
+        Vector3f coneDir = new Vector3f(spotLight.getConeDirection().normalize());
         Vector3f lightPos = spotLight.getPointLight().getPosition();
 
-        float fovy = (float) Math.toRadians(30);
-//        (2 * Math.acos(spotLight.getCutoff())
-        // .lookAt requires an eye (position), centre (where to look) and an up direction (0,1,0)
-        Matrix4f lightViewMatrix = new Matrix4f().lookAt(lightPos, new Vector3f(lightPos).add(new Vector3f(coneDir)), new Vector3f(0, 1, 0));
-        Matrix4f lightProjectionMatrix = new Matrix4f().perspective(fovy, 1f, 0.1f, 50.0f);
+        float fovy = 2.0f * (float) Math.acos(spotLight.getCutoff());
+        Vector3f up = Math.abs(coneDir.y) > 0.99f ? new Vector3f(0, 0, -1) : new Vector3f(0,1,0);
+        Matrix4f lightViewMatrix = new Matrix4f().lookAt(lightPos, new Vector3f(lightPos).add(new Vector3f(coneDir)), up);
+        Matrix4f lightProjectionMatrix = new Matrix4f().perspective(fovy, 1f, 0.01f, 100.0f);
         lightViewProjectionMatrix = new Matrix4f(lightProjectionMatrix).mul(lightViewMatrix);
 
 
         depthShader.setUniform("lightViewProjectionMatrix", lightViewProjectionMatrix);
 
         for (Model model : entities.keySet()) {
+            if (model == null) {
+                break;
+            }
             bindDepth(model);
 
             List<Entity> list = entities.get(model);
             for (Entity entity : list) {
+                depthShader.setUniform(
+                        "modelMatrix",
+                        Transformation.createTransformationMatrix(entity)
+                );
                 GL11.glDrawElements(GL11.GL_TRIANGLES, entity.getModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
             }
 

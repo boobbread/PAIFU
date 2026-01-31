@@ -63,28 +63,28 @@
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl</artifactId>
             <version>${lwjgl.version}</version>
-            <classifier>natives-linux</classifier>
+            <classifier>natives-windows</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-opengl</artifactId>
             <version>${lwjgl.version}</version>
-            <classifier>natives-linux</classifier>
+            <classifier>natives-windows</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-glfw</artifactId>
             <version>${lwjgl.version}</version>
-            <classifier>natives-linux</classifier>
+            <classifier>natives-windows</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-stb</artifactId>
             <version>${lwjgl.version}</version>
-            <classifier>natives-linux</classifier>
+            <classifier>natives-windows</classifier>
         </dependency>
     </dependencies>
 

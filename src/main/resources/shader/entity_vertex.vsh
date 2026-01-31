@@ -1,8 +1,8 @@
 #version 400 core
 
-in vec3 position;
-in vec2 textureCoords;
-in vec3 normal;
+layout (location = 0) in vec3 position;
+layout (location = 1) in vec2 textureCoords;
+layout (location = 2) in vec3 normal;
 
 out vec2 fragTextureCoord;
 out vec3 fragNormal;
@@ -16,11 +16,13 @@ uniform mat4 lightViewProjectionMatrix;
 
 void main() {
     vec4 worldPos = transformationMatrix * vec4(position, 1.0);
-    gl_Position = projectionMatrix * viewMatrix * worldPos;
 
-    fragNormal = normalize((transformationMatrix * vec4(normal, 0.0)).xyz);
+    mat3 normalMatrix = transpose(inverse(mat3(transformationMatrix)));
+    fragNormal = normalize(normalMatrix * normal);
+
     fragPos = worldPos.xyz;
     fragTextureCoord = textureCoords;
     fragLVPos = lightViewProjectionMatrix * worldPos;
+
     gl_Position = projectionMatrix * viewMatrix * worldPos;
 }

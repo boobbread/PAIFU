@@ -4,6 +4,9 @@ import java.nio.ByteBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
+import static org.lwjgl.opengl.GL13.GL_CLAMP_TO_BORDER;
+import static org.lwjgl.opengl.GL14.*;
+import static org.lwjgl.opengl.GL30.GL_COMPARE_REF_TO_TEXTURE;
 
 public class Texture {
 
@@ -18,12 +21,22 @@ public class Texture {
         this.id = glGenTextures();
         this.width = width;
         this.height = height;
+
         glBindTexture(GL_TEXTURE_2D, this.id);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, this.width, this.height, 0, pixelFormat, GL_FLOAT, (ByteBuffer) null);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24,
+                width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, (ByteBuffer) null);
+
+        // Shadow map comparison
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        float[] borderColor = {1f, 1f, 1f, 1f};
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     public int getId() {

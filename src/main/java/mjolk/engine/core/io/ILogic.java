@@ -4,7 +4,7 @@ public interface ILogic {
 
     void init() throws Exception;
 
-    void input();
+    void input(float interval);
 
     void update(float interval, MouseInput mouseInput);
 

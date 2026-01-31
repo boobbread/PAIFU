@@ -56,6 +56,8 @@ vec4 ambientC;
 vec4 diffuseC;
 vec4 specularC;
 
+vec3 N = normalize(fragNormal);
+
 void setupColours(Material material, vec2 texCoords) {
     if(material.hasTexture == 1) {
         ambientC = texture(textureSampler, texCoords);
@@ -96,24 +98,22 @@ vec4 calcPointLight(PointLight light, vec3 position, vec3 normal) {
     return (light_colour / attenuationInv);
 }
 
-float calcShadow(vec3 to_light_dir) {
+float calcShadow(vec3 to_light_dir, vec3 normal) {
     vec3 projCoords = fragLVPos.xyz / fragLVPos.w;
     projCoords = projCoords * 0.5 + 0.5;
 
     if (projCoords.x < 0.0 || projCoords.x > 1.0 ||
     projCoords.y < 0.0 || projCoords.y > 1.0 ||
-    projCoords.z > 1.0) {
+    projCoords.z > 1.0 || projCoords.z < 0.0 ) {
         return 1.0;
     }
 
-    float bias = max(
-    0.0005 * (1.0 - dot(normalize(fragNormal), normalize(to_light_dir))),
-    0.0001
-    );
+    float bias = max(0.001 * (1.0 - dot(normal, normalize(to_light_dir))), 0.0005);
 
-
-    return texture(shadowMap, vec3(projCoords.xy, projCoords.z - bias));
+    float shadow = texture(shadowMap, vec3(projCoords.xy, projCoords.z - bias));
+    return shadow < 0.5 ? 0.0 : 1.0; // 1=lit, 0=shadow
 }
+
 
 vec4 calcSpotLight(SpotLight light, vec3 position, vec3 normal) {
     vec3 light_dir = light.pl.position - position;
@@ -128,7 +128,7 @@ vec4 calcSpotLight(SpotLight light, vec3 position, vec3 normal) {
         colour = calcPointLight(light.pl, position, normal);
         colour *= (1.0 - (1.0 - spot_alpha) / (1.0 - light.cutoff));
 
-        float shadow = calcShadow(to_light_dir);
+        float shadow = calcShadow(to_light_dir, normal);
         colour *= shadow;
     }
 
@@ -140,27 +140,27 @@ vec4 calcDirectionalLight(DirectionalLight light, vec3 position, vec3 normal) {
 }
 
 void main() {
-
     setupColours(material, fragTextureCoord);
 
-    vec4 diffuseSpecularComp = calcDirectionalLight(directionalLight, fragPos, fragNormal);
+    vec3 N = normalize(fragNormal);
+
+    vec4 diffuseSpecularComp =
+    calcDirectionalLight(directionalLight, fragPos, N);
 
     for (int i = 0; i < MAX_POINT_LIGHTS; i++) {
-        if(pointLights[i].intensity > 0) {
-            diffuseSpecularComp += calcPointLight(pointLights[i], fragPos, fragNormal);
+        if (pointLights[i].intensity > 0) {
+            diffuseSpecularComp +=
+            calcPointLight(pointLights[i], fragPos, N);
         }
     }
+
     for (int i = 0; i < MAX_SPOT_LIGHTS; i++) {
-        if(spotLights[i].pl.intensity > 0) {
-            diffuseSpecularComp += calcSpotLight(spotLights[i], fragPos, fragNormal);
+        if (spotLights[i].pl.intensity > 0) {
+            diffuseSpecularComp +=
+            calcSpotLight(spotLights[i], fragPos, N);
         }
     }
 
-//    fragColour = vec4(normalize(fragNormal) * 0.5 + 0.5, 1.0);
-//    fragColour = ambientC * vec4(ambientLight, 1) + diffuseSpecularComp;
-
-    vec3 ndc = fragLVPos.xyz / fragLVPos.w;
-    fragColour = vec4(ndc * 0.5 + 0.5, 1.0);
-
+    fragColour = ambientC * vec4(ambientLight, 1) + diffuseSpecularComp;
 
 }

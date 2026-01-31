@@ -30,6 +30,8 @@ public class RenderManager {
     public void init() throws Exception {
         entityRenderer = new EntityRenderer();
         entityRenderer.init();
+
+        System.out.println("RenderManager INIT");
     }
 
     public static void renderLights(PointLight[] pointLights, SpotLight[] spotLights, DirectionLight directionLight, ShaderManager shader) {

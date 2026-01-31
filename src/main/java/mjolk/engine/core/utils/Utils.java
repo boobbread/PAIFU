@@ -6,6 +6,8 @@ import java.io.*;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -32,6 +34,20 @@ public class Utils {
             result = scanner.useDelimiter("\\A").next();
         }
         return result;
+    }
+
+    public static String loadShader(String resourcePath) throws IOException {
+        try (InputStream in = Utils.class.getResourceAsStream(resourcePath)) {
+            if (in == null)
+                throw new IOException("Shader resource not found: " + resourcePath);
+
+            byte[] bytes = in.readAllBytes();
+            String src = new String(bytes, StandardCharsets.UTF_8);
+            if (src.startsWith("\uFEFF")) src = src.substring(1);
+            src = src.replace("\r\n", "\n");
+            src = src.trim();
+            return src;
+        }
     }
 
     public static List<String> readAllLines(String fileName) throws Exception {

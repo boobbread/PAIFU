@@ -1,13 +1,10 @@
-#version 330
+#version 400 core
 
-layout (location=0) in vec3 position;
-layout (location=1) in vec2 texCoord;
-layout (location=2) in vec3 vertexNormal;
+layout (location = 0) in vec3 position;
 
-uniform mat4 modelLightViewMatrix;
-uniform mat4 perspectiveLightViewMatrix;
+uniform mat4 lightViewProjectionMatrix;
+uniform mat4 modelMatrix;
 
-void main()
-{
-    gl_Position = modelLightViewMatrix * vec4(position, 1.0f);
+void main() {
+    gl_Position = lightViewProjectionMatrix * modelMatrix * vec4(position, 1.0);
 }

@@ -71,24 +71,25 @@ public class TestGame implements ILogic {
         PointLight pointLight = new PointLight(lightColour, lightPosition, 0f);
 
         // Spotlight
-        Vector3f coneDirection = new Vector3f(0, -1, 0);
-        float cutoff = (float) Math.cos(Math.toRadians(180));
+        Vector3f coneDirection = new Vector3f(0f, -1, 0);
+        float cutoff = (float) Math.cos(Math.toRadians(30));
         SpotLight spotLight = new SpotLight(new PointLight(lightColour, new Vector3f(1,1.8f,1),
                 1f, 0, 0, 0.5f), coneDirection, cutoff);
 
         // Directional light
         lightPosition = new Vector3f(0, 3, 0f);
         lightColour = new Vector3f(1, 1, 1);
-        directionLight = new DirectionLight(lightColour, lightPosition, 1f);
+        directionLight = new DirectionLight(lightColour, lightPosition, 0f);
         directionLight.setDirection(new Vector3f(0, 0, 0));
 
         pointLights = new PointLight[]{pointLight};
         spotLights = new SpotLight[]{spotLight};
 
+        System.out.println("TestGame INIT");
     }
 
     @Override
-    public void input() {
+    public void input(float interval) {
         cameraInc.set(0,0,0);
 
         if (window.isKeyPressed(GLFW.GLFW_KEY_W)) {
@@ -126,10 +127,12 @@ public class TestGame implements ILogic {
 
         float lightPos = spotLights[0].getPointLight().getPosition().z;
         if (window.isKeyPressed(GLFW.GLFW_KEY_N)) {
-            spotLights[0].getPointLight().getPosition().y += 0.005f;
+            spotLights[0].getPointLight().getPosition().y += 0.5f  * interval;
+            System.out.println(spotLights[0].getPointLight().getPosition().y);
         }
         if (window.isKeyPressed(GLFW.GLFW_KEY_M)) {
-            spotLights[0].getPointLight().getPosition().y -= 0.005f;
+            spotLights[0].getPointLight().getPosition().y -= 0.5f  * interval;
+            System.out.println(spotLights[0].getPointLight().getPosition().y);
         }
     }
 

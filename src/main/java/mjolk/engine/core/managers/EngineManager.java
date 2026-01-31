@@ -23,12 +23,17 @@ public class EngineManager {
 
     private void init() throws Exception {
         GLFW.glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
+
         window = Launcher.getWindow();
+        window.init();
+
         gameLogic = Launcher.getGame();
         mouseInput = new MouseInput();
-        window.init();
+
         gameLogic.init();
         mouseInput.init();
+
+        System.out.println("EngineManager INIT");
     }
 
     public void start() throws Exception {
@@ -47,7 +52,7 @@ public class EngineManager {
             lastTime = now;
 
             GLFW.glfwPollEvents();
-            input();
+            input(delta);
 
             update(delta);
             render();
@@ -68,8 +73,8 @@ public class EngineManager {
         isRunning = false;
     }
 
-    public void input() {
-        gameLogic.input();
+    public void input(float interval) {
+        gameLogic.input(interval);
         mouseInput.input();
     }
 

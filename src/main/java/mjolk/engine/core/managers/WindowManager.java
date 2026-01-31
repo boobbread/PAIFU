@@ -7,12 +7,14 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL32.*;
 import org.lwjgl.system.MemoryUtil;
 
 import static mjolk.engine.core.entity.Camera.Perspective.NORMAL;
 import static mjolk.engine.core.utils.Constants.*;
-import static org.lwjgl.opengl.GL11.glClearColor;
-import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL32.GL_CONTEXT_PROFILE_MASK;
 
 public class WindowManager {
 
@@ -43,10 +45,12 @@ public class WindowManager {
         GLFW.glfwDefaultWindowHints();
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE);
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);
-        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2);
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 4);
+        GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 0);
         GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
         GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE);
+        GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_DEBUG_CONTEXT, GLFW.GLFW_TRUE);
+
 
         boolean maximised = false;
 
@@ -83,6 +87,15 @@ public class WindowManager {
         }
 
         GLFW.glfwMakeContextCurrent(window);
+        GL.createCapabilities();
+
+        int profile = GL11.glGetInteger(GL_CONTEXT_PROFILE_MASK);
+        System.out.println("Context Profile Mask: " + profile);
+
+        System.out.println("Vendor: " + GL11.glGetString(GL11.GL_VENDOR));
+        System.out.println("Renderer: " + GL11.glGetString(GL11.GL_RENDERER));
+        System.out.println("GL Version: " + GL11.glGetString(GL11.GL_VERSION));
+        System.out.println("GLSL Version: " + GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
 
         if (vSync) {
             GLFW.glfwSwapInterval(1);
@@ -90,13 +103,13 @@ public class WindowManager {
 
         GLFW.glfwShowWindow(window);
 
-        GL.createCapabilities();
-
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glEnable(GL11.GL_DEPTH_TEST);
         glEnable(GL11.GL_STENCIL_TEST);
         glEnable(GL11.GL_CULL_FACE);
         GL11.glCullFace(GL11.GL_BACK);
+
+        System.out.println("WindowManager INIT");
 
     }
 

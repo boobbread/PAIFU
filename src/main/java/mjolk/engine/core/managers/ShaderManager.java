@@ -7,6 +7,7 @@ import mjolk.engine.core.lighting.SpotLight;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryStack;
 
@@ -164,10 +165,12 @@ public class ShaderManager {
     }
 
     public void createVertexShader(String shaderCode) throws Exception {
+        System.out.println(GL11.glGetString(GL11.GL_VERSION));
         vertexShaderID = createShader(shaderCode, GL20.GL_VERTEX_SHADER);
     }
 
     public void createFragmentShader(String shaderCode) throws Exception {
+        System.out.println(GL11.glGetString(GL11.GL_VERSION));
         fragmentShaderID = createShader(shaderCode, GL20.GL_FRAGMENT_SHADER);
     }
 
