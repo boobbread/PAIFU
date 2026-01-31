@@ -87,17 +87,6 @@ vec4 calcLightColour(vec3 light_colour, float light_intensity, vec3 position, ve
     return (diffuseColour + specularColour);
 }
 
-vec4 calcPointLight(PointLight light, vec3 position, vec3 normal) {
-    vec3 light_dir = light.position - position;
-    vec3 to_light_dir = normalize(light_dir);
-    vec4 light_colour = calcLightColour(light.colour, light.intensity, position, to_light_dir, normal);
-
-    float distance = length(light_dir);
-    float attenuationInv = light.constant + light.linear * distance + light.exponent * distance * distance;
-
-    return (light_colour / attenuationInv);
-}
-
 float calcShadow(vec3 to_light_dir, vec3 normal) {
     vec3 projCoords = fragLVPos.xyz / fragLVPos.w;
     projCoords = projCoords * 0.5 + 0.5;
@@ -114,6 +103,20 @@ float calcShadow(vec3 to_light_dir, vec3 normal) {
     return shadow < 0.5 ? 0.0 : 1.0; // 1=lit, 0=shadow
 }
 
+vec4 calcPointLight(PointLight light, vec3 position, vec3 normal) {
+    vec3 light_dir = light.position - position;
+    vec3 to_light_dir = normalize(light_dir);
+    vec4 light_colour = calcLightColour(light.colour, light.intensity, position, to_light_dir, normal);
+
+    float distance = length(light_dir);
+    float attenuationInv = light.constant + light.linear * distance + light.exponent * distance * distance;
+
+    vec4 colour = light_colour / attenuationInv;
+    float shadow = calcShadow(to_light_dir, normal);
+    colour *= shadow;
+
+    return colour;
+}
 
 vec4 calcSpotLight(SpotLight light, vec3 position, vec3 normal) {
     vec3 light_dir = light.pl.position - position;
@@ -136,7 +139,13 @@ vec4 calcSpotLight(SpotLight light, vec3 position, vec3 normal) {
 }
 
 vec4 calcDirectionalLight(DirectionalLight light, vec3 position, vec3 normal) {
-    return calcLightColour(light.colour, light.intensity, position, normalize(light.direction), normal);
+    vec4 colour = calcLightColour(light.colour, light.intensity, position, normalize(light.direction), normal);
+
+    vec3 to_light_dir = -normalize(light.direction);
+    float shadow = calcShadow(to_light_dir, normal);
+    colour *= shadow;
+
+    return colour;
 }
 
 void main() {

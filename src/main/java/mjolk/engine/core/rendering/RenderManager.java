@@ -5,6 +5,7 @@ import mjolk.engine.core.entity.Camera;
 import mjolk.engine.core.entity.Entity;
 import mjolk.engine.core.entity.Model;
 import mjolk.engine.core.lighting.DirectionLight;
+import mjolk.engine.core.lighting.Light;
 import mjolk.engine.core.lighting.PointLight;
 import mjolk.engine.core.lighting.SpotLight;
 import mjolk.engine.core.managers.ShaderManager;
@@ -34,26 +35,29 @@ public class RenderManager {
         System.out.println("RenderManager INIT");
     }
 
-    public static void renderLights(PointLight[] pointLights, SpotLight[] spotLights, DirectionLight directionLight, ShaderManager shader) {
+    public static void renderLights(Light[] lights, ShaderManager shader) {
 
         shader.setUniform("ambientLight", Constants.AMBIENT_LIGHT);
         shader.setUniform("specularPower", SPECULAR_POWER);
 
-        int numLights = spotLights != null ? spotLights.length : 0;
+        int numLights = lights != null ? lights.length : 0;
         for (int i = 0; i < numLights; i++) {
-            shader.setUniform("spotLights", spotLights[i], i);
-        }
+            if (lights[i] instanceof SpotLight) {
+                shader.setUniform("spotLights", (SpotLight) lights[i], i);
+            }
 
-        numLights = pointLights != null ? pointLights.length : 0;
-        for (int i = 0; i < numLights; i++) {
-            shader.setUniform("pointLights", pointLights[i], i);
-        }
+            if (lights[i] instanceof PointLight) {
+                shader.setUniform("pointLights", (PointLight) lights[i], i);
+            }
 
-        shader.setUniform("directionalLight", directionLight);
+            if (lights[i] instanceof DirectionLight) {
+                shader.setUniform("directionLight", (DirectionLight) lights[i]);
+            }
+        }
 
     }
 
-    public void render(Camera camera, DirectionLight directionLight, PointLight[] pointLights, SpotLight[] spotLights) {
+    public void render(Camera camera, Light[] lights) {
         clear();
 
         if (window.isResize()) {
@@ -61,7 +65,7 @@ public class RenderManager {
             window.setResize(false);
         }
 
-        entityRenderer.render(camera, pointLights, spotLights, directionLight);
+        entityRenderer.render(camera, lights);
     }
 
     public void processEntities(Entity entity) {
@@ -73,6 +77,10 @@ public class RenderManager {
             newEntityList.add(entity);
             entityRenderer.getEntities().put(entity.getModel(), newEntityList);
         }
+    }
+
+    public void renderScene() {
+
     }
 
     public void clear() {

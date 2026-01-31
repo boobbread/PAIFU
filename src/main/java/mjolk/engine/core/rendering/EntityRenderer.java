@@ -2,11 +2,9 @@ package mjolk.engine.core.rendering;
 
 import mjolk.engine.Launcher;
 import mjolk.engine.core.entity.*;
-import mjolk.engine.core.lighting.DirectionLight;
-import mjolk.engine.core.lighting.PointLight;
-import mjolk.engine.core.lighting.ShadowMap;
-import mjolk.engine.core.lighting.SpotLight;
+import mjolk.engine.core.lighting.*;
 import mjolk.engine.core.managers.ShaderManager;
+import mjolk.engine.core.utils.GBuffer;
 import mjolk.engine.core.utils.Transformation;
 import mjolk.engine.core.utils.Utils;
 import org.joml.Matrix4f;
@@ -73,9 +71,8 @@ public class EntityRenderer implements IRenderer {
     }
 
     @Override
-    public void render(Camera camera, PointLight[] pointLights, SpotLight[] spotLights, DirectionLight directionLight) {
+    public void render(Camera camera, Light[] lights) {
 
-        renderDepthMap(spotLights[0]);
         Texture depthMap = shadowMap.getDepthMapTexture();
         glViewport(0, 0, Launcher.getWindow().getWidth(), Launcher.getWindow().getHeight());
 
@@ -89,7 +86,7 @@ public class EntityRenderer implements IRenderer {
 
         shader.setUniform("lightViewProjectionMatrix", lightViewProjectionMatrix);
 
-        RenderManager.renderLights(pointLights, spotLights, directionLight, shader);
+        RenderManager.renderLights(lights, shader);
 
         for (Model model : entities.keySet()) {
             bind(model);
@@ -182,15 +179,7 @@ public class EntityRenderer implements IRenderer {
         glClear(GL_DEPTH_BUFFER_BIT);
         depthShader.bind();
 
-        Vector3f coneDir = new Vector3f(spotLight.getConeDirection().normalize());
-        Vector3f lightPos = spotLight.getPointLight().getPosition();
-
-        float fovy = 2.0f * (float) Math.acos(spotLight.getCutoff());
-        Vector3f up = Math.abs(coneDir.y) > 0.99f ? new Vector3f(0, 0, -1) : new Vector3f(0,1,0);
-        Matrix4f lightViewMatrix = new Matrix4f().lookAt(lightPos, new Vector3f(lightPos).add(new Vector3f(coneDir)), up);
-        Matrix4f lightProjectionMatrix = new Matrix4f().perspective(fovy, 1f, 0.01f, 100.0f);
-        lightViewProjectionMatrix = new Matrix4f(lightProjectionMatrix).mul(lightViewMatrix);
-
+        lightViewProjectionMatrix = spotLight.getProjectionMatrix();
 
         depthShader.setUniform("lightViewProjectionMatrix", lightViewProjectionMatrix);
 
