@@ -7,14 +7,15 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL32.*;
 import org.lwjgl.system.MemoryUtil;
 
 import static mjolk.engine.core.entity.Camera.Perspective.NORMAL;
 import static mjolk.engine.core.utils.Constants.*;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL32.GL_CONTEXT_PROFILE_MASK;
+import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL30.*;
+
 
 public class WindowManager {
 
@@ -28,14 +29,17 @@ public class WindowManager {
     private final Matrix4f projectionMatrix;
 
     public WindowManager(String title, int width, int height, boolean vSync) {
+        System.out.println("WindowManager constructor called");
         this.title = title;
         this.width = width;
         this.height = height;
         this.vSync = vSync;
         projectionMatrix = new Matrix4f();
+        init();
     }
 
     public void init() {
+        System.out.println("WindowManager init called");
         GLFWErrorCallback.createPrint(System.err).set();
 
         if(!GLFW.glfwInit()) {
@@ -89,14 +93,6 @@ public class WindowManager {
         GLFW.glfwMakeContextCurrent(window);
         GL.createCapabilities();
 
-        int profile = GL11.glGetInteger(GL_CONTEXT_PROFILE_MASK);
-        System.out.println("Context Profile Mask: " + profile);
-
-        System.out.println("Vendor: " + GL11.glGetString(GL11.GL_VENDOR));
-        System.out.println("Renderer: " + GL11.glGetString(GL11.GL_RENDERER));
-        System.out.println("GL Version: " + GL11.glGetString(GL11.GL_VERSION));
-        System.out.println("GLSL Version: " + GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION));
-
         if (vSync) {
             GLFW.glfwSwapInterval(1);
         }
@@ -109,7 +105,7 @@ public class WindowManager {
         glEnable(GL11.GL_CULL_FACE);
         GL11.glCullFace(GL11.GL_BACK);
 
-        System.out.println("WindowManager INIT");
+        System.out.println("WindowManager init complete");
 
     }
 
@@ -209,4 +205,5 @@ public class WindowManager {
         float aspectRatio = (float) width / (float) height;
         return projectionMatrix.setPerspective(FOV, aspectRatio, Z_NEAR, Z_FAR);
     }
+
 }

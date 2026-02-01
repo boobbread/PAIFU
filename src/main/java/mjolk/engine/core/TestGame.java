@@ -7,85 +7,90 @@ import mjolk.engine.core.io.MouseInput;
 import mjolk.engine.core.lighting.DirectionLight;
 import mjolk.engine.core.lighting.PointLight;
 import mjolk.engine.core.lighting.SpotLight;
+import mjolk.engine.core.lighting.deferred.GeometryRenderer;
+import mjolk.engine.core.lighting.deferred.LightingRenderer;
 import mjolk.engine.core.rendering.RenderManager;
 import mjolk.engine.core.managers.WindowManager;
+import mjolk.engine.core.rendering.Scene;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
 import static mjolk.engine.core.utils.Constants.CAMERA_STEP;
 import static mjolk.engine.core.utils.Constants.MOUSE_SENSITIVITY;
+import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_FLOAT;
+import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
+import static org.lwjgl.opengl.GL11.glClear;
+import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glDrawElements;
+import static org.lwjgl.opengl.GL15.*;
+import static org.lwjgl.opengl.GL15.glDeleteBuffers;
+import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL30.*;
 
 public class TestGame implements ILogic {
 
     private final RenderManager renderer;
     private final WindowManager window;
-    private final ObjectLoader loader;
+    private Scene scene;
+    private ObjectLoader loader;
 
-    private List<Entity> entities;
-    private Camera camera;
+    private GeometryRenderer geometryRenderer;
+    private LightingRenderer lightingRenderer;
 
     Vector3f cameraInc;
 
-    private float lightAngle;
-    private DirectionLight directionLight;
-    private PointLight[] pointLights;
-    private SpotLight[] spotLights;
-
-    public TestGame() {
+    public TestGame() throws Exception {
+        System.out.println("TestGame constructor called");
         renderer = new RenderManager();
         window = Launcher.getWindow();
-        loader = new ObjectLoader();
-        camera = new Camera();
         cameraInc = new Vector3f(0, 0, 0);
-        lightAngle = -90f;
     }
 
     @Override
     public void init() throws Exception {
+        System.out.println("TestGame init called");
+
+        geometryRenderer = new GeometryRenderer(Launcher.getWindow().getWidth(), Launcher.getWindow().getHeight());
+        lightingRenderer = new LightingRenderer();
+
+        geometryRenderer.init();
+        lightingRenderer.init();
         renderer.init();
+        loader = new ObjectLoader();
 
         Model model = loader.loadOBJModel("models/church_2.obj");
-        model.setTexture(new Texture(loader.loadTexture("textures/colour.png")), .02f);
+        model.setTexture(new Texture(loader.loadTexture("textures/texture.jpg")), .02f);
 
-        entities = new ArrayList<>();
-//        Random rnd = new Random();
-//        for (int i = 0; i < 20; i++) {
-//            float x = (rnd.nextFloat() * 5) - 2.5f;
-//            float y = (rnd.nextFloat() * 5) - 2.5f;
-//            float z = (rnd.nextFloat() * 5) - 2.5f;
-//
-//            entities.add(new Entity(1, new Vector3f(rnd.nextFloat() * 180, rnd.nextFloat() * 180, 0), new Vector3f(x, y, z), model));
-//        }
-
-        entities.add(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1, 0, 1), model));
+        Camera camera = new Camera();
         camera.setPosition(0,0,5);
 
-        // Point light
-        Vector3f lightPosition = new Vector3f(1, 2, 1);
-        Vector3f lightColour = new Vector3f(1, 1, 1);
-        PointLight pointLight = new PointLight(lightColour, lightPosition, 0f);
+        scene = new Scene(camera);
 
-        // Spotlight
-        Vector3f coneDirection = new Vector3f(0f, -1, 0);
-        float cutoff = (float) Math.cos(Math.toRadians(30));
-        SpotLight spotLight = new SpotLight(new PointLight(lightColour, new Vector3f(1,1.8f,1),
-                1f, 0, 0, 0.5f), coneDirection, cutoff);
+        scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1, 0, 1), model));
 
         // Directional light
-        lightPosition = new Vector3f(0, 3, 0f);
-        lightColour = new Vector3f(1, 1, 1);
-        directionLight = new DirectionLight(lightColour, lightPosition, 0f);
-        directionLight.setDirection(new Vector3f(0, 0, 0));
+        Vector3f lightPosition = new Vector3f(0, -3, 0f);
+        Vector3f lightColour = new Vector3f(0, 0, 1);
+        DirectionLight directionLight = new DirectionLight(lightColour, lightPosition, 1f);
+        scene.addLight(directionLight);
 
-        pointLights = new PointLight[]{pointLight};
-        spotLights = new SpotLight[]{spotLight};
+        // Point light
+        lightPosition = new Vector3f(-1f, 1.9f, 1);
+        lightColour = new Vector3f(1, 0, 0);
+        PointLight pointLight = new PointLight(lightColour, lightPosition, 1f, 1f, 0.09f, 0.032f);
+        scene.addLight(pointLight);
 
-        System.out.println("TestGame INIT");
+        // Spotlight
+//        Vector3f coneDirection = new Vector3f(0f, -1, 0);
+//        float cutoff = (float) Math.cos(Math.toRadians(30));
+//        SpotLight spotLight = new SpotLight(new PointLight(lightColour, new Vector3f(1,1.8f,1),
+//                1f, 1f, 0.09f, 0.032f), coneDirection, cutoff);
+//        scene.addLight(spotLight);
+
+        System.out.println("TestGame init complete");
     }
 
     @Override
@@ -111,49 +116,37 @@ public class TestGame implements ILogic {
         if (window.isKeyPressed(GLFW.GLFW_KEY_SPACE)) {
             cameraInc.y = 1;
         }
-
-        if (window.isKeyPressed(GLFW.GLFW_KEY_LEFT)) {
-            pointLights[0].getPosition().x -= 0.05f;
-        }
-        if (window.isKeyPressed(GLFW.GLFW_KEY_RIGHT)) {
-            pointLights[0].getPosition().x += 0.05f;
-        }
-        if (window.isKeyPressed(GLFW.GLFW_KEY_UP)) {
-            pointLights[0].getPosition().y += 0.05f;
-        }
-        if (window.isKeyPressed(GLFW.GLFW_KEY_DOWN)) {
-            pointLights[0].getPosition().y -= 0.05f;
-        }
-
-        float lightPos = spotLights[0].getPointLight().getPosition().z;
-        if (window.isKeyPressed(GLFW.GLFW_KEY_N)) {
-            spotLights[0].getPointLight().getPosition().y += 0.5f  * interval;
-            System.out.println(spotLights[0].getPointLight().getPosition().y);
-        }
-        if (window.isKeyPressed(GLFW.GLFW_KEY_M)) {
-            spotLights[0].getPointLight().getPosition().y -= 0.5f  * interval;
-            System.out.println(spotLights[0].getPointLight().getPosition().y);
-        }
     }
 
     @Override
     public void update(float interval, MouseInput mouseInput) {
         float moveSpeed = CAMERA_STEP * interval;
-        camera.movePosition(cameraInc.x * moveSpeed, cameraInc.y * moveSpeed, cameraInc.z * moveSpeed);
+        scene.getCamera().movePosition(cameraInc.x * moveSpeed, cameraInc.y * moveSpeed, cameraInc.z * moveSpeed);
 
         if(mouseInput.isLeftButtonPress()) {
             Vector2f rotVec = mouseInput.getDisplayVec();
-            camera.moveRotation(rotVec.x * MOUSE_SENSITIVITY * interval, rotVec.y * MOUSE_SENSITIVITY * interval, 0);
+            scene.getCamera().moveRotation(rotVec.x * MOUSE_SENSITIVITY * interval, rotVec.y * MOUSE_SENSITIVITY * interval, 0);
         }
 
-        for (Entity e : entities) {
+        for (Entity e : scene.getEntities()) {
             renderer.processEntities(e);
         }
+
+        scene.update(interval);
     }
 
     @Override
     public void render() {
-        renderer.render(camera, directionLight, pointLights, spotLights);
+//        renderer.render(
+//                scene.getCamera(),
+//                scene.getDirectionalLight(),
+//                scene.getPointLights().toArray(new PointLight[0]),
+//                scene.getSpotLights().toArray(new SpotLight[0])
+//        );
+
+        geometryRenderer.geometryPass(scene);
+        lightingRenderer.render(scene, geometryRenderer);
+
     }
 
     @Override

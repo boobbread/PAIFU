@@ -1,24 +1,15 @@
 package mjolk.engine.core.lighting;
 
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-public class DirectionLight {
+public class DirectionLight extends Light {
 
-    private Vector3f colour, direction;
-    private float intensity;
+    private Vector3f direction;
 
     public DirectionLight(Vector3f colour, Vector3f direction, float intensity) {
-        this.intensity = intensity;
+        super(colour, intensity);
         this.direction = direction;
-        this.colour = colour;
-    }
-
-    public Vector3f getColour() {
-        return colour;
-    }
-
-    public void setColour(Vector3f colour) {
-        this.colour = colour;
     }
 
     public Vector3f getDirection() {
@@ -29,11 +20,25 @@ public class DirectionLight {
         this.direction = direction;
     }
 
-    public float getIntensity() {
-        return intensity;
-    }
+    public Matrix4f getViewProjectionMatrix() {
+        Vector3f sceneCenter = new Vector3f(0, 0, 0);
+        float sceneRadius = 10f;
 
-    public void setIntensity(float intensity) {
-        this.intensity = intensity;
+        Vector3f direction = new Vector3f(getDirection()).normalize();
+        Vector3f lightPos = new Vector3f(sceneCenter).add(new Vector3f(direction).mul(sceneRadius * 2.0f));
+        Vector3f up = Math.abs(direction.y) > 0.99f ? new Vector3f(0, 0, -1) : new Vector3f(0,1,0);
+
+        Matrix4f lightViewMatrix = new Matrix4f().lookAt(lightPos, sceneCenter, up);
+
+        float left = -sceneRadius;
+        float right = sceneRadius;
+        float bottom = -sceneRadius;
+        float top = sceneRadius;
+        float near = 0.1f;
+        float far = sceneRadius * 4.0f;
+
+        Matrix4f lightProjectionMatrix = new Matrix4f().ortho(left, right, bottom, top, near, far);
+
+        return new Matrix4f(lightProjectionMatrix).mul(lightViewMatrix);
     }
 }

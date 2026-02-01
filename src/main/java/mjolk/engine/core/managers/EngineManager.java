@@ -22,6 +22,7 @@ public class EngineManager {
     private MouseInput mouseInput;
 
     private void init() throws Exception {
+        System.out.println("EngineManager init called");
         GLFW.glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
 
         window = Launcher.getWindow();
@@ -33,7 +34,7 @@ public class EngineManager {
         gameLogic.init();
         mouseInput.init();
 
-        System.out.println("EngineManager INIT");
+        System.out.println("EngineManager init complete");
     }
 
     public void start() throws Exception {

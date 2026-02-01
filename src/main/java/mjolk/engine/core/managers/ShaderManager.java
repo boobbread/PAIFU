@@ -14,6 +14,8 @@ import org.lwjgl.system.MemoryStack;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.lwjgl.opengl.GL20.*;
+
 public class ShaderManager {
 
     private final int programID;
@@ -47,6 +49,12 @@ public class ShaderManager {
         createUniform(uniformName + ".specular");
         createUniform(uniformName + ".hasTexture");
         createUniform(uniformName + ".reflectance");
+    }
+
+    public void createDirectionalLightListUniform(String uniformName, int size) throws Exception {
+        for (int i = 0; i < size; i++) {
+            createDirectionalLightUniform(uniformName + "[" + i + "]");
+        }
     }
 
     public void createDirectionalLightUniform(String uniformName) throws Exception {
@@ -164,13 +172,91 @@ public class ShaderManager {
         setUniform(uniformName + "[" + pos + "]", spotLight);
     }
 
+    public void setUniform(String uniformName, DirectionLight[] lights) {
+        int count = lights != null ? lights.length : 0;
+        for (int i = 0; i < count; i++) {
+            setUniform(uniformName + "[" + i + "]", lights[i]);
+        }
+    }
+
+    public void setPointLights(String baseName, PointLight[] lights) {
+        for (int i = 0; i < lights.length; i++) {
+            PointLight pl = lights[i];
+            setUniform(baseName + "Positions[" + i + "]", pl.getPosition());
+            setUniform(baseName + "Colors[" + i + "]", pl.getColour());
+            setUniform(baseName + "Intensities[" + i + "]", pl.getIntensity());
+            setUniform(baseName + "Constants[" + i + "]", pl.getConstant());
+            setUniform(baseName + "Linears[" + i + "]", pl.getLinear());
+            setUniform(baseName + "Exponents[" + i + "]", pl.getExponent());
+        }
+    }
+
+    public void setDirectionalLights(String baseName, DirectionLight[] lights) {
+        for (int i = 0; i < lights.length; i++) {
+            DirectionLight dl = lights[i];
+            setUniform(baseName + "Directions[" + i + "]", dl.getDirection());
+            setUniform(baseName + "Colors[" + i + "]", dl.getColour());
+            setUniform(baseName + "Intensities[" + i + "]", dl.getIntensity());
+        }
+    }
+
+    public void setSpotLights(String baseName, SpotLight[] lights) {
+        for (int i = 0; i < lights.length; i++) {
+            SpotLight sl = lights[i];
+            setUniform(baseName + "Positions[" + i + "]", sl.getPointLight().getPosition());
+            setUniform(baseName + "Colors[" + i + "]", sl.getPointLight().getColour());
+            setUniform(baseName + "Intensities[" + i + "]", sl.getPointLight().getIntensity());
+            setUniform(baseName + "Constants[" + i + "]", sl.getPointLight().getConstant());
+            setUniform(baseName + "Linears[" + i + "]", sl.getPointLight().getLinear());
+            setUniform(baseName + "Exponents[" + i + "]", sl.getPointLight().getExponent());
+            setUniform(baseName + "Directions[" + i + "]", sl.getConeDirection());
+            setUniform(baseName + "Cutoffs[" + i + "]", sl.getCutoff());
+        }
+    }
+
+    // ---- Directional Lights ----
+    public void createDirectionalLightArray(String baseName, int maxCount) throws Exception {
+        createUniform("numDirLights");
+        for (int i = 0; i < maxCount; i++) {
+            createUniform(baseName + "Directions[" + i + "]");
+            createUniform(baseName + "Colors[" + i + "]");
+            createUniform(baseName + "Intensities[" + i + "]");
+        }
+    }
+
+    // ---- Point Lights ----
+    public void createPointLightArray(String baseName, int maxCount) throws Exception {
+        createUniform("numPointLights");
+        for (int i = 0; i < maxCount; i++) {
+            createUniform(baseName + "Positions[" + i + "]");
+            createUniform(baseName + "Colors[" + i + "]");
+            createUniform(baseName + "Intensities[" + i + "]");
+            createUniform(baseName + "Constants[" + i + "]");
+            createUniform(baseName + "Linears[" + i + "]");
+            createUniform(baseName + "Exponents[" + i + "]");
+        }
+    }
+
+    // ---- Spot Lights ----
+    public void createSpotLightArray(String baseName, int maxCount) throws Exception {
+        createUniform("numSpotLights");
+        for (int i = 0; i < maxCount; i++) {
+            createUniform(baseName + "Positions[" + i + "]");
+            createUniform(baseName + "Colors[" + i + "]");
+            createUniform(baseName + "Intensities[" + i + "]");
+            createUniform(baseName + "Constants[" + i + "]");
+            createUniform(baseName + "Linears[" + i + "]");
+            createUniform(baseName + "Exponents[" + i + "]");
+            createUniform(baseName + "Directions[" + i + "]");
+            createUniform(baseName + "Cutoffs[" + i + "]");
+        }
+    }
+
     public void createVertexShader(String shaderCode) throws Exception {
-        System.out.println(GL11.glGetString(GL11.GL_VERSION));
         vertexShaderID = createShader(shaderCode, GL20.GL_VERTEX_SHADER);
     }
 
     public void createFragmentShader(String shaderCode) throws Exception {
-        System.out.println(GL11.glGetString(GL11.GL_VERSION));
         fragmentShaderID = createShader(shaderCode, GL20.GL_FRAGMENT_SHADER);
     }
 
@@ -195,10 +281,12 @@ public class ShaderManager {
 
     public void link() throws Exception {
 
-        GL20.glLinkProgram(programID);
-
-        if (GL20.glGetProgrami(programID, GL20.GL_LINK_STATUS) == 0) {
-            throw new Exception("Could not link program: " + GL20.glGetProgramInfoLog(programID, 1024));
+        glLinkProgram(programID);
+        int status = glGetProgrami(programID, GL_LINK_STATUS);
+        if (status == GL_FALSE) {
+            String log = glGetProgramInfoLog(programID);
+            System.out.println("Shader link error:\n" + log);
+            throw new RuntimeException("Could not link shader program");
         }
 
         if (vertexShaderID != 0) {
@@ -210,8 +298,8 @@ public class ShaderManager {
         }
 
         GL20.glValidateProgram(programID);
-        if (GL20.glGetProgrami(programID, GL20.GL_VALIDATE_STATUS) == 0) {
-            throw new Exception("Could not validate program: " + GL20.glGetProgramInfoLog(programID, 1024));
+        if (glGetProgrami(programID, GL20.GL_VALIDATE_STATUS) == 0) {
+            throw new Exception("Could not validate program: " + glGetProgramInfoLog(programID, 1024));
         }
     }
 

@@ -24,14 +24,14 @@ public class RenderManager {
     private EntityRenderer entityRenderer;
 
     public RenderManager() {
+        System.out.println("RenderManager constructor called");
         window = Launcher.getWindow();
     }
 
     public void init() throws Exception {
+        System.out.println("RenderManager init called");
         entityRenderer = new EntityRenderer();
         entityRenderer.init();
-
-        System.out.println("RenderManager INIT");
     }
 
     public static void renderLights(PointLight[] pointLights, SpotLight[] spotLights, DirectionLight directionLight, ShaderManager shader) {
@@ -49,7 +49,9 @@ public class RenderManager {
             shader.setUniform("pointLights", pointLights[i], i);
         }
 
-        shader.setUniform("directionalLight", directionLight);
+        if (directionLight != null) {
+            shader.setUniform("directionalLight", directionLight);
+        }
 
     }
 

@@ -36,13 +36,14 @@ public class EntityRenderer implements IRenderer {
     Matrix4f lightViewProjectionMatrix;
 
     public EntityRenderer() throws Exception {
+        System.out.println("EntityRenderer constructor called");
         entities = new HashMap<>();
         shader = new ShaderManager();
     }
 
     @Override
     public void init() throws Exception {
-        System.out.println("EntityRenderer INIT");
+        System.out.println("EntityRenderer init called");
         String srcVert = Utils.loadShader("/shader/entity_vertex.vsh");
         String srcFrag = Utils.loadShader("/shader/entity_fragment.fsh");
 
@@ -96,6 +97,11 @@ public class EntityRenderer implements IRenderer {
             List<Entity> list = entities.get(model);
             for (Entity entity : list) {
                 prepare(entity, camera);
+                int vao = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
+                if (vao == 0) {
+                    throw new IllegalStateException("No VAO bound before glDrawElements!");
+                }
+
                 GL11.glDrawElements(GL11.GL_TRIANGLES, entity.getModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
             }
             unbind();
@@ -182,14 +188,7 @@ public class EntityRenderer implements IRenderer {
         glClear(GL_DEPTH_BUFFER_BIT);
         depthShader.bind();
 
-        Vector3f coneDir = new Vector3f(spotLight.getConeDirection().normalize());
-        Vector3f lightPos = spotLight.getPointLight().getPosition();
-
-        float fovy = 2.0f * (float) Math.acos(spotLight.getCutoff());
-        Vector3f up = Math.abs(coneDir.y) > 0.99f ? new Vector3f(0, 0, -1) : new Vector3f(0,1,0);
-        Matrix4f lightViewMatrix = new Matrix4f().lookAt(lightPos, new Vector3f(lightPos).add(new Vector3f(coneDir)), up);
-        Matrix4f lightProjectionMatrix = new Matrix4f().perspective(fovy, 1f, 0.01f, 100.0f);
-        lightViewProjectionMatrix = new Matrix4f(lightProjectionMatrix).mul(lightViewMatrix);
+        lightViewProjectionMatrix = spotLight.getViewProjectionMatrix();
 
 
         depthShader.setUniform("lightViewProjectionMatrix", lightViewProjectionMatrix);
@@ -206,6 +205,11 @@ public class EntityRenderer implements IRenderer {
                         "modelMatrix",
                         Transformation.createTransformationMatrix(entity)
                 );
+                int vao = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
+                if (vao == 0) {
+                    throw new IllegalStateException("No VAO bound before glDrawElements!");
+                }
+
                 GL11.glDrawElements(GL11.GL_TRIANGLES, entity.getModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
             }
 

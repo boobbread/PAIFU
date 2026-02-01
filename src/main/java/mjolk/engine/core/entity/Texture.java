@@ -14,10 +14,12 @@ public class Texture {
     private int width, height;
 
     public Texture(int id) {
+        System.out.println("Texture constructor called");
         this.id = id;
     }
 
     public Texture(int width, int height, int pixelFormat) throws Exception {
+        System.out.println("Texture constructor called");
         this.id = glGenTextures();
         this.width = width;
         this.height = height;
@@ -36,6 +38,32 @@ public class Texture {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    public Texture(int width, int height, int internalFormat, int format, int type) throws Exception {
+        System.out.println("Texture constructor called");
+        this.id = glGenTextures();
+        this.width = width;
+        this.height = height;
+
+        glBindTexture(GL_TEXTURE_2D, this.id);
+        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, (ByteBuffer) null);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    public void bind(int unit) {
+        glActiveTexture(GL_TEXTURE0 + unit);
+        glBindTexture(GL_TEXTURE_2D, id);
+    }
+
+    public void unbind() {
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 

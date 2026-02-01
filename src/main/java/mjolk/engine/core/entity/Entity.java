@@ -30,6 +30,10 @@ public class Entity {
         this(1, new Vector3f(0,0,0), new Vector3f(0,0,0), model);
     }
 
+    public void update() {
+        // Space for future
+    }
+
     public void incPos(float x, float y, float z) {
         this.pos.x += x;
         this.pos.y += y;

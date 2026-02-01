@@ -49,4 +49,5 @@ public class Model {
         this.material.setTexture(texture);
         this.material.setReflectance(reflectance);
     }
+
 }
