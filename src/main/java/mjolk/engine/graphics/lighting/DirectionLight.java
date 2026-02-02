@@ -1,15 +1,20 @@
 package mjolk.engine.graphics.lighting;
 
+import mjolk.engine.graphics.lighting.shadow.ShadowMap;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 public class DirectionLight extends Light {
 
     private Vector3f direction;
+    private ShadowMap shadowMap;
 
-    public DirectionLight(Vector3f colour, Vector3f direction, float intensity) {
+    public DirectionLight(Vector3f colour, Vector3f direction, float intensity) throws Exception {
         super(colour, intensity);
         this.direction = direction;
+
+        this.castsShadows = true;
+        shadowMap = new ShadowMap(2048,2048);
     }
 
     public Vector3f getDirection() {
@@ -25,7 +30,7 @@ public class DirectionLight extends Light {
         float sceneRadius = 10f;
 
         Vector3f direction = new Vector3f(getDirection()).normalize();
-        Vector3f lightPos = new Vector3f(sceneCenter).add(new Vector3f(direction).mul(sceneRadius * 2.0f));
+        Vector3f lightPos = new Vector3f(sceneCenter).sub(new Vector3f(direction).mul(sceneRadius * 2.0f));
         Vector3f up = Math.abs(direction.y) > 0.99f ? new Vector3f(0, 0, -1) : new Vector3f(0,1,0);
 
         Matrix4f lightViewMatrix = new Matrix4f().lookAt(lightPos, sceneCenter, up);
@@ -34,11 +39,15 @@ public class DirectionLight extends Light {
         float right = sceneRadius;
         float bottom = -sceneRadius;
         float top = sceneRadius;
-        float near = 0.1f;
+        float near = 1f;
         float far = sceneRadius * 4.0f;
 
         Matrix4f lightProjectionMatrix = new Matrix4f().ortho(left, right, bottom, top, near, far);
 
         return new Matrix4f(lightProjectionMatrix).mul(lightViewMatrix);
+    }
+
+    public ShadowMap getShadowMap() {
+        return shadowMap;
     }
 }

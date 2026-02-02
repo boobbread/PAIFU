@@ -1,6 +1,7 @@
 package mjolk.engine.core.managers;
 
 import mjolk.engine.graphics.camera.Camera;
+import mjolk.engine.graphics.rendering.renderer.ShadowRenderer;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -8,6 +9,8 @@ import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
+
+import java.util.logging.Logger;
 
 import static mjolk.engine.graphics.camera.Camera.Perspective.NORMAL;
 import static mjolk.engine.core.maths.Constants.*;
@@ -17,6 +20,7 @@ import static org.lwjgl.opengl.GL11.glEnable;
 
 public class WindowManager {
 
+    private static final Logger LOGGER = Logger.getLogger(WindowManager.class.getName());
     private final String title;
 
     private int width, height;
@@ -27,7 +31,7 @@ public class WindowManager {
     private final Matrix4f projectionMatrix;
 
     public WindowManager(String title, int width, int height, boolean vSync) {
-        System.out.println("WindowManager constructor called");
+        LOGGER.info("WindowManager constructor called");
         this.title = title;
         this.width = width;
         this.height = height;
@@ -37,7 +41,7 @@ public class WindowManager {
     }
 
     public void init() {
-        System.out.println("WindowManager init called");
+        LOGGER.info("WindowManager init called");
         GLFWErrorCallback.createPrint(System.err).set();
 
         if(!GLFW.glfwInit()) {
@@ -103,7 +107,7 @@ public class WindowManager {
         glEnable(GL11.GL_CULL_FACE);
         GL11.glCullFace(GL11.GL_BACK);
 
-        System.out.println("WindowManager init complete");
+        LOGGER.info("WindowManager init complete");
 
     }
 

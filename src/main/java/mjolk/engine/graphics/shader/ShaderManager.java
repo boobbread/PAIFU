@@ -89,6 +89,18 @@ public class ShaderManager {
         }
     }
 
+    public void createDirectionalShadowArray(String baseName, int maxCount) throws Exception {
+        for (int i = 0; i < maxCount; i++) {
+            createUniform(baseName + "[" + i + "]");
+        }
+    }
+
+    public void createMatrixArray(String baseName, int maxCount) throws Exception {
+        for (int i = 0; i < maxCount; i++) {
+            createUniform(baseName + "[" + i + "]");
+        }
+    }
+
     public void setUniform(String uniformName, Matrix4f value) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             GL20.glUniformMatrix4fv(uniforms.get(uniformName), false,
@@ -182,7 +194,7 @@ public class ShaderManager {
         for (int i = 0; i < lights.length; i++) {
             PointLight pl = lights[i];
             setUniform(baseName + "Positions[" + i + "]", pl.getPosition());
-            setUniform(baseName + "Colors[" + i + "]", pl.getColour());
+            setUniform(baseName + "Colours[" + i + "]", pl.getColour());
             setUniform(baseName + "Intensities[" + i + "]", pl.getIntensity());
             setUniform(baseName + "Constants[" + i + "]", pl.getConstant());
             setUniform(baseName + "Linears[" + i + "]", pl.getLinear());
@@ -194,7 +206,7 @@ public class ShaderManager {
         for (int i = 0; i < lights.length; i++) {
             DirectionLight dl = lights[i];
             setUniform(baseName + "Directions[" + i + "]", dl.getDirection());
-            setUniform(baseName + "Colors[" + i + "]", dl.getColour());
+            setUniform(baseName + "Colours[" + i + "]", dl.getColour());
             setUniform(baseName + "Intensities[" + i + "]", dl.getIntensity());
         }
     }
@@ -203,7 +215,7 @@ public class ShaderManager {
         for (int i = 0; i < lights.length; i++) {
             SpotLight sl = lights[i];
             setUniform(baseName + "Positions[" + i + "]", sl.getPointLight().getPosition());
-            setUniform(baseName + "Colors[" + i + "]", sl.getPointLight().getColour());
+            setUniform(baseName + "Colours[" + i + "]", sl.getPointLight().getColour());
             setUniform(baseName + "Intensities[" + i + "]", sl.getPointLight().getIntensity());
             setUniform(baseName + "Constants[" + i + "]", sl.getPointLight().getConstant());
             setUniform(baseName + "Linears[" + i + "]", sl.getPointLight().getLinear());
@@ -213,12 +225,32 @@ public class ShaderManager {
         }
     }
 
+    public void setShadowMaps(
+            String uniformBase,
+            int startTextureUnit,
+            int count
+    ) {
+        for (int i = 0; i < count; i++) {
+            GL20.glUniform1i(
+                    uniforms.get(uniformBase + "[" + i + "]"),
+                    startTextureUnit + i
+            );
+        }
+    }
+
+    public void setMatrixArray(String baseName, Matrix4f[] matrices) {
+        for (int i = 0; i < matrices.length; i++) {
+            setUniform(baseName + "[" + i + "]", matrices[i]);
+        }
+    }
+
+
     // ---- Directional Lights ----
     public void createDirectionalLightArray(String baseName, int maxCount) throws Exception {
         createUniform("numDirLights");
         for (int i = 0; i < maxCount; i++) {
             createUniform(baseName + "Directions[" + i + "]");
-            createUniform(baseName + "Colors[" + i + "]");
+            createUniform(baseName + "Colours[" + i + "]");
             createUniform(baseName + "Intensities[" + i + "]");
         }
     }
@@ -228,7 +260,7 @@ public class ShaderManager {
         createUniform("numPointLights");
         for (int i = 0; i < maxCount; i++) {
             createUniform(baseName + "Positions[" + i + "]");
-            createUniform(baseName + "Colors[" + i + "]");
+            createUniform(baseName + "Colours[" + i + "]");
             createUniform(baseName + "Intensities[" + i + "]");
             createUniform(baseName + "Constants[" + i + "]");
             createUniform(baseName + "Linears[" + i + "]");
@@ -241,7 +273,7 @@ public class ShaderManager {
         createUniform("numSpotLights");
         for (int i = 0; i < maxCount; i++) {
             createUniform(baseName + "Positions[" + i + "]");
-            createUniform(baseName + "Colors[" + i + "]");
+            createUniform(baseName + "Colours[" + i + "]");
             createUniform(baseName + "Intensities[" + i + "]");
             createUniform(baseName + "Constants[" + i + "]");
             createUniform(baseName + "Linears[" + i + "]");
@@ -284,7 +316,6 @@ public class ShaderManager {
         int status = glGetProgrami(programID, GL_LINK_STATUS);
         if (status == GL_FALSE) {
             String log = glGetProgramInfoLog(programID);
-            System.out.println("Shader link error:\n" + log);
             throw new RuntimeException("Could not link shader program");
         }
 

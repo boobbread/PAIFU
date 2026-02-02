@@ -1,8 +1,13 @@
 package mjolk.engine.graphics.lighting;
 
+import mjolk.engine.graphics.lighting.shadow.ShadowMap;
+import mjolk.engine.graphics.material.Texture;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 public abstract class Light {
+
+    protected boolean castsShadows = true;
 
     private Vector3f colour;
     private float intensity;
@@ -31,4 +36,12 @@ public abstract class Light {
     public void update() {
         // Space for future
     }
+
+    public boolean castsShadows() {
+        return castsShadows;
+    }
+
+    public abstract ShadowMap getShadowMap();
+
+    public abstract Matrix4f getViewProjectionMatrix();
 }

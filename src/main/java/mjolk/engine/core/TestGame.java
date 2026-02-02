@@ -2,6 +2,9 @@ package mjolk.engine.core;
 
 import mjolk.engine.Launcher;
 import mjolk.engine.core.entity.*;
+import mjolk.engine.graphics.lighting.DirectionLight;
+import mjolk.engine.graphics.lighting.SpotLight;
+import mjolk.engine.graphics.rendering.renderer.ShadowRenderer;
 import mjolk.engine.io.ILogic;
 import mjolk.engine.io.MouseInput;
 import mjolk.engine.graphics.lighting.PointLight;
@@ -17,9 +20,13 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.logging.Logger;
+
 import static mjolk.engine.core.maths.Constants.CAMERA_STEP;
 import static mjolk.engine.core.maths.Constants.MOUSE_SENSITIVITY;
 public class TestGame implements ILogic {
+
+    private static final Logger LOGGER = Logger.getLogger(TestGame.class.getName());
     private final WindowManager window;
     private Scene scene;
     private ObjectLoader loader;
@@ -27,22 +34,26 @@ public class TestGame implements ILogic {
     private GeometryRenderer geometryRenderer;
     private LightingRenderer lightingRenderer;
 
+    private ShadowRenderer shadowRenderer;
+
     Vector3f cameraInc;
 
     public TestGame() throws Exception {
-        System.out.println("TestGame constructor called");
+        LOGGER.info("TestGame constructor called");
         window = Launcher.getWindow();
         cameraInc = new Vector3f(0, 0, 0);
     }
 
     @Override
     public void init() throws Exception {
-        System.out.println("TestGame init called");
+        LOGGER.info("TestGame init called");
 
         geometryRenderer = new GeometryRenderer(Launcher.getWindow().getWidth(), Launcher.getWindow().getHeight());
+        shadowRenderer = new ShadowRenderer();
         lightingRenderer = new LightingRenderer();
 
         geometryRenderer.init();
+        shadowRenderer.init();
         lightingRenderer.init();
 
         loader = new ObjectLoader();
@@ -61,12 +72,21 @@ public class TestGame implements ILogic {
         scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1, 0, 1), box_model));
 
         // Point light
-        Vector3f lightPosition = new Vector3f(-1f, 1.9f, 1);
-        Vector3f lightColour = new Vector3f(1, 0, 0);
+        Vector3f lightPosition = new Vector3f(1f, 1.9f, 1);
+        Vector3f lightColour = new Vector3f(1, 1, 1);
         PointLight pointLight = new PointLight(lightColour, lightPosition, 1f, 1f, 0.09f, 0.032f);
-        scene.addLight(pointLight);
 
-        System.out.println("TestGame init complete");
+
+        DirectionLight directionLight = new DirectionLight(new Vector3f(1, 1, 1), new Vector3f(-0.3f, -1.0f, -0.2f), 1f);
+        scene.addLight(directionLight);
+
+        SpotLight spotLight = new SpotLight(new PointLight(new Vector3f(1, 0, 0), new Vector3f(1.9f, 1.9f, 1), 0.5f, 1f, 0.09f, 0.032f), new Vector3f(-1, -1, 0), (float) Math.toRadians(30));
+        scene.addLight(spotLight);
+
+        SpotLight spotLight2 = new SpotLight(new PointLight(new Vector3f(0, 0, 1), new Vector3f(0.1f, 1.9f, 1), 0.5f, 1f, 0.09f, 0.032f), new Vector3f(1, -1, 0), (float) Math.toRadians(30));
+        scene.addLight(spotLight2);
+
+        LOGGER.info("TestGame init complete");
     }
 
     @Override
@@ -111,7 +131,8 @@ public class TestGame implements ILogic {
     public void render() {
 
         geometryRenderer.geometryPass(scene);
-        lightingRenderer.render(scene, geometryRenderer);
+        shadowRenderer.render(scene);
+        lightingRenderer.render(scene, geometryRenderer, shadowRenderer);
 
     }
 

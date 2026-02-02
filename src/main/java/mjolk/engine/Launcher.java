@@ -4,17 +4,21 @@ import mjolk.engine.core.managers.EngineManager;
 import mjolk.engine.core.TestGame;
 import mjolk.engine.core.managers.WindowManager;
 import mjolk.engine.core.maths.Constants;
+import mjolk.engine.graphics.rendering.renderer.ShadowRenderer;
+
+import java.util.logging.Logger;
 
 import static org.lwjgl.opengl.GL11.glDrawElements;
 import static org.lwjgl.opengl.GL15.glDeleteBuffers;
 
 public class Launcher {
+    private static final Logger LOGGER = Logger.getLogger(Launcher.class.getName());
 
     private static WindowManager window;
     private static TestGame game;
 
     public static void main(String[] args) throws Exception {
-        System.out.println("Launcher called");
+        LOGGER.info("Launcher called");
 
         window = new WindowManager(Constants.TITLE, 1600, 900, false);
 

@@ -7,21 +7,25 @@ import mjolk.engine.graphics.lighting.PointLight;
 import mjolk.engine.graphics.lighting.SpotLight;
 import mjolk.engine.graphics.shader.ShaderManager;
 import mjolk.engine.core.utils.Utils;
+import org.joml.Matrix4f;
+
+import java.util.logging.Logger;
 
 import static org.lwjgl.opengl.GL11.*;
 
 public class LightingRenderer {
+    private static final Logger LOGGER = Logger.getLogger(LightingRenderer.class.getName());
 
     private ShaderManager shader;
     private ScreenQuad quad;
 
     public LightingRenderer() throws Exception {
-        System.out.println("LightingRenderer constructor called");
+        LOGGER.info("LightingRenderer constructor called");
         shader = new ShaderManager();
     }
 
     public void init() throws Exception {
-        System.out.println("LightingRenderer init called");
+        LOGGER.info("LightingRenderer init called");
         quad = new ScreenQuad();
 
         shader.createVertexShader(Utils.loadShader("/shader/lighting_pass.vsh"));
@@ -39,10 +43,16 @@ public class LightingRenderer {
         shader.createPointLightArray("pointLight", 20);      // max 20 point lights
         shader.createSpotLightArray("spotLight", 10);       // max 10 spot lights
 
+        shader.createDirectionalShadowArray("dirShadowMaps", 10);
+        shader.createMatrixArray("dirLightSpaceMatrices", 10);
+
+        shader.createDirectionalShadowArray("spotShadowMaps", 10);
+        shader.createMatrixArray("spotLightSpaceMatrices", 10);
+
         quad.init();
     }
 
-    public void render(Scene scene, GeometryRenderer geometryRenderer) {
+    public void render(Scene scene, GeometryRenderer geometryRenderer, ShadowRenderer shadowRenderer) {
         glClear(GL_COLOR_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
 
@@ -69,6 +79,39 @@ public class LightingRenderer {
         SpotLight[] spotLights = scene.getSpotLights().toArray(new SpotLight[0]);
         shader.setSpotLights("spotLight", spotLights);
         shader.setUniform("numSpotLights", spotLights.length);
+
+        int textureUnit = 3;
+
+        // ---- Directional shadows ----
+        for (int i = 0; i < dirLights.length; i++) {
+            dirLights[i].getShadowMap().getDepthTexture().bind(textureUnit + i);
+        }
+
+        shader.setShadowMaps("dirShadowMaps", textureUnit, dirLights.length);
+
+        Matrix4f[] dirMatrices = new Matrix4f[dirLights.length];
+        for (int i = 0; i < dirLights.length; i++) {
+            dirMatrices[i] = dirLights[i].getViewProjectionMatrix();
+        }
+
+        shader.setMatrixArray("dirLightSpaceMatrices", dirMatrices);
+
+        textureUnit += dirLights.length;
+
+        for (int i = 0; i < spotLights.length; i++) {
+            spotLights[i].getShadowMap().getDepthTexture().bind(textureUnit + i);
+        }
+
+        shader.setShadowMaps("spotShadowMaps", textureUnit, spotLights.length);
+
+        Matrix4f[] spotMatrices = new Matrix4f[spotLights.length];
+        for (int i = 0; i < spotLights.length; i++) {
+            spotMatrices[i] = spotLights[i].getViewProjectionMatrix();
+        }
+
+        shader.setMatrixArray("spotLightSpaceMatrices", spotMatrices);
+
+        textureUnit += spotLights.length;
 
         quad.render();
     }

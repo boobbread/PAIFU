@@ -1,5 +1,6 @@
 package mjolk.engine.graphics.lighting;
 
+import mjolk.engine.graphics.lighting.shadow.ShadowMap;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -87,5 +88,15 @@ public class PointLight extends Light {
         }
 
         return matrices;
+    }
+
+    @Override
+    public ShadowMap getShadowMap() {
+        return null;
+    }
+
+    @Override
+    public Matrix4f getViewProjectionMatrix() {
+        return null;
     }
 }

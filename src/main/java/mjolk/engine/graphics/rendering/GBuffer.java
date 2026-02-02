@@ -1,12 +1,16 @@
 package mjolk.engine.graphics.rendering;
 
 import mjolk.engine.graphics.material.Texture;
+import mjolk.engine.graphics.rendering.renderer.ShadowRenderer;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+
+import java.util.logging.Logger;
 
 import static org.lwjgl.opengl.GL30.*;
 
 public class GBuffer {
+    private static final Logger LOGGER = Logger.getLogger(GBuffer.class.getName());
 
     // needs a position, diffuse, normal and specular texture
     private Texture positionTexture;
@@ -19,13 +23,13 @@ public class GBuffer {
     private int width, height;
 
     public GBuffer(int width, int height) throws Exception {
-        System.out.println("GBuffer constructor called");
+        LOGGER.info("GBuffer constructor called");
         this.width = width;
         this.height = height;
     }
 
     public void init() throws Exception {
-        System.out.println("GBuffer init called");
+        LOGGER.info("GBuffer init called");
         fbo = GL30.glGenFramebuffers();
         GL30.glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 

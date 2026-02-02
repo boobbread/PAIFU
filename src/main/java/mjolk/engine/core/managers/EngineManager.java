@@ -1,12 +1,17 @@
 package mjolk.engine.core.managers;
 
 import mjolk.engine.Launcher;
+import mjolk.engine.graphics.rendering.renderer.ShadowRenderer;
 import mjolk.engine.io.ILogic;
 import mjolk.engine.io.MouseInput;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
+import java.util.logging.Logger;
+
 public class EngineManager {
+
+    private static final Logger LOGGER = Logger.getLogger(EngineManager.class.getName());
 
     public static final long NANOSECOND = 1000000000L;
     public static final float FRAMERATE = 120;
@@ -22,11 +27,10 @@ public class EngineManager {
     private MouseInput mouseInput;
 
     private void init() throws Exception {
-        System.out.println("EngineManager init called");
+        LOGGER.info("EngineManager init called");
         GLFW.glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
 
         window = Launcher.getWindow();
-        window.init();
 
         gameLogic = Launcher.getGame();
         mouseInput = new MouseInput();
@@ -34,7 +38,7 @@ public class EngineManager {
         gameLogic.init();
         mouseInput.init();
 
-        System.out.println("EngineManager init complete");
+        LOGGER.info("EngineManager init complete");
     }
 
     public void start() throws Exception {

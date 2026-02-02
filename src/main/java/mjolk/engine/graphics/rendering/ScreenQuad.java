@@ -1,28 +1,31 @@
 package mjolk.engine.graphics.rendering;
 
+import mjolk.engine.graphics.rendering.renderer.ShadowRenderer;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.logging.Logger;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.glDeleteBuffers;
 import static org.lwjgl.opengl.GL30.*;
 
 public class ScreenQuad {
+    private static final Logger LOGGER = Logger.getLogger(ScreenQuad.class.getName());
 
     private int vao;
     private int vbo;
     private int ebo;
 
     public ScreenQuad() {
-        System.out.println("ScreenQuad constructor called");
+        LOGGER.info("ScreenQuad constructor called");
     }
 
     public void init() {
-        System.out.println("ScreenQuad init called");
+        LOGGER.info("ScreenQuad init called");
         float[] vertices = {
             -1f, -1f, 0f, 0f,
             1f, -1f, 1f, 0f,

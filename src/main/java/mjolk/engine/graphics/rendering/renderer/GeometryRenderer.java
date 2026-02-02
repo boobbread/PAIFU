@@ -10,22 +10,25 @@ import mjolk.engine.graphics.rendering.GBuffer;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
+import java.util.logging.Logger;
+
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class GeometryRenderer {
+    private static final Logger LOGGER = Logger.getLogger(GeometryRenderer.class.getName());
 
     private GBuffer gBuffer;
     private ShaderManager shader;
 
     public GeometryRenderer(int width, int height) throws Exception {
-        System.out.println("GeometryRenderer constructor called");
+        LOGGER.info("GeometryRenderer constructor called");
         gBuffer = new GBuffer(width, height);
         shader = new ShaderManager();
     }
 
     public void init() throws Exception {
-        System.out.println("GeometryRenderer init called");
+        LOGGER.info("GeometryRenderer init called");
         gBuffer.init();
         String srcVert = Utils.loadShader("/shader/geometry_pass.vsh");
         String srcFrag = Utils.loadShader("/shader/geometry_pass.fsh");

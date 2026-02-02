@@ -1,6 +1,9 @@
 package mjolk.engine.graphics.material;
 
+import mjolk.engine.graphics.rendering.renderer.ShadowRenderer;
+
 import java.nio.ByteBuffer;
+import java.util.logging.Logger;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
@@ -9,17 +12,18 @@ import static org.lwjgl.opengl.GL14.*;
 import static org.lwjgl.opengl.GL30.GL_COMPARE_REF_TO_TEXTURE;
 
 public class Texture {
+    private static final Logger LOGGER = Logger.getLogger(Texture.class.getName());
 
     private final int id;
     private int width, height;
 
     public Texture(int id) {
-        System.out.println("Texture constructor called");
+        LOGGER.info("Texture constructor called");
         this.id = id;
     }
 
     public Texture(int width, int height, int pixelFormat) throws Exception {
-        System.out.println("Texture constructor called");
+        LOGGER.info("Texture constructor called");
         this.id = glGenTextures();
         this.width = width;
         this.height = height;
@@ -42,7 +46,7 @@ public class Texture {
     }
 
     public Texture(int width, int height, int internalFormat, int format, int type) throws Exception {
-        System.out.println("Texture constructor called");
+        LOGGER.info("Texture constructor called");
         this.id = glGenTextures();
         this.width = width;
         this.height = height;
