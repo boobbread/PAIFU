@@ -1,10 +1,9 @@
-package mjolk.engine.core.entity;
+package mjolk.engine.graphics.mesh;
 
 import mjolk.engine.core.utils.Utils;
 import mjolk.engine.core.utils.VertexKey;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
-import org.joml.Vector3i;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
@@ -15,7 +14,10 @@ import org.lwjgl.system.MemoryStack;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ObjectLoader {
 

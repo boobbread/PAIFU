@@ -1,4 +1,4 @@
-package mjolk.engine.core.entity;
+package mjolk.engine.graphics.rendering;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;

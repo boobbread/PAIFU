@@ -1,6 +1,6 @@
-package mjolk.engine.core.utils;
+package mjolk.engine.core.maths;
 
-import mjolk.engine.core.entity.Camera;
+import mjolk.engine.graphics.camera.Camera;
 import mjolk.engine.core.entity.Entity;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;

@@ -1,4 +1,4 @@
-package mjolk.engine.core.io;
+package mjolk.engine.io;
 
 import mjolk.engine.Launcher;
 import org.joml.Vector2d;

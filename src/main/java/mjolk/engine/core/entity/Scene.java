@@ -1,11 +1,10 @@
-package mjolk.engine.core.rendering;
+package mjolk.engine.core.entity;
 
-import mjolk.engine.core.entity.Camera;
-import mjolk.engine.core.entity.Entity;
-import mjolk.engine.core.lighting.DirectionLight;
-import mjolk.engine.core.lighting.Light;
-import mjolk.engine.core.lighting.PointLight;
-import mjolk.engine.core.lighting.SpotLight;
+import mjolk.engine.graphics.camera.Camera;
+import mjolk.engine.graphics.lighting.DirectionLight;
+import mjolk.engine.graphics.lighting.Light;
+import mjolk.engine.graphics.lighting.PointLight;
+import mjolk.engine.graphics.lighting.SpotLight;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;

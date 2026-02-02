@@ -1,13 +1,12 @@
-package mjolk.engine.core.managers;
+package mjolk.engine.graphics.shader;
 
-import mjolk.engine.core.entity.Material;
-import mjolk.engine.core.lighting.DirectionLight;
-import mjolk.engine.core.lighting.PointLight;
-import mjolk.engine.core.lighting.SpotLight;
+import mjolk.engine.graphics.material.Material;
+import mjolk.engine.graphics.lighting.DirectionLight;
+import mjolk.engine.graphics.lighting.PointLight;
+import mjolk.engine.graphics.lighting.SpotLight;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryStack;
 

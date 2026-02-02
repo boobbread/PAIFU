@@ -1,8 +1,8 @@
 package mjolk.engine.core.managers;
 
 import mjolk.engine.Launcher;
-import mjolk.engine.core.io.ILogic;
-import mjolk.engine.core.io.MouseInput;
+import mjolk.engine.io.ILogic;
+import mjolk.engine.io.MouseInput;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 

@@ -1,8 +1,8 @@
-package mjolk.engine.core.entity;
+package mjolk.engine.graphics.material;
 
 import org.joml.Vector4f;
 
-import static mjolk.engine.core.utils.Constants.DEFAULT_COLOUR;
+import static mjolk.engine.core.maths.Constants.DEFAULT_COLOUR;
 
 public class Material {
 

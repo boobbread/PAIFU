@@ -1,4 +1,7 @@
-package mjolk.engine.core.entity;
+package mjolk.engine.graphics.mesh;
+
+import mjolk.engine.graphics.material.Material;
+import mjolk.engine.graphics.material.Texture;
 
 public class Model {
 

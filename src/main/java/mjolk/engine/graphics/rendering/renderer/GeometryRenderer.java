@@ -1,20 +1,16 @@
-package mjolk.engine.core.lighting.deferred;
+package mjolk.engine.graphics.rendering.renderer;
 
 import mjolk.engine.Launcher;
 import mjolk.engine.core.entity.Entity;
-import mjolk.engine.core.managers.ShaderManager;
-import mjolk.engine.core.managers.WindowManager;
-import mjolk.engine.core.rendering.Scene;
-import mjolk.engine.core.utils.Transformation;
+import mjolk.engine.graphics.shader.ShaderManager;
+import mjolk.engine.core.entity.Scene;
+import mjolk.engine.core.maths.Transformation;
 import mjolk.engine.core.utils.Utils;
+import mjolk.engine.graphics.rendering.GBuffer;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER_BINDING;
-import static org.lwjgl.opengl.GL30.GL_VERTEX_ARRAY_BINDING;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class GeometryRenderer {
@@ -77,5 +73,10 @@ public class GeometryRenderer {
         gBuffer.getPositionTexture().bind(positionUnit);
         gBuffer.getNormalTexture().bind(normalUnit);
         gBuffer.getDiffuseSpecTexture().bind(albedoSpecUnit);
+    }
+
+    public void cleanup() {
+        shader.cleanup();
+        gBuffer.cleanup();
     }
 }

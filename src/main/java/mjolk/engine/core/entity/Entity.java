@@ -1,5 +1,6 @@
 package mjolk.engine.core.entity;
 
+import mjolk.engine.graphics.mesh.Model;
 import org.joml.Vector3f;
 
 public class Entity {

@@ -1,9 +1,9 @@
-package mjolk.engine.core.entity;
+package mjolk.engine.graphics.material;
 
 import java.nio.ByteBuffer;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.*;
+import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 import static org.lwjgl.opengl.GL13.GL_CLAMP_TO_BORDER;
 import static org.lwjgl.opengl.GL14.*;
 import static org.lwjgl.opengl.GL30.GL_COMPARE_REF_TO_TEXTURE;

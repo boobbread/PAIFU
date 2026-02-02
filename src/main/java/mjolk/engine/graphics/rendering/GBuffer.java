@@ -1,6 +1,6 @@
-package mjolk.engine.core.lighting.deferred;
+package mjolk.engine.graphics.rendering;
 
-import mjolk.engine.core.entity.Texture;
+import mjolk.engine.graphics.material.Texture;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
@@ -65,4 +65,12 @@ public class GBuffer {
     public Texture getPositionTexture() { return positionTexture; }
     public Texture getNormalTexture() { return normalTexture; }
     public Texture getDiffuseSpecTexture() { return diffuseSpecTexture; }
+
+    public void cleanup() {
+        positionTexture.cleanup();
+        normalTexture.cleanup();
+        diffuseSpecTexture.cleanup();
+
+        glDeleteFramebuffers(fbo);
+    }
 }

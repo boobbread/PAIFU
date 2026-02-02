@@ -1,14 +1,12 @@
-package mjolk.engine.core.lighting.deferred;
+package mjolk.engine.graphics.rendering.renderer;
 
-import mjolk.engine.core.entity.ScreenQuad;
-import mjolk.engine.core.lighting.DirectionLight;
-import mjolk.engine.core.lighting.Light;
-import mjolk.engine.core.lighting.PointLight;
-import mjolk.engine.core.lighting.SpotLight;
-import mjolk.engine.core.managers.ShaderManager;
-import mjolk.engine.core.rendering.Scene;
+import mjolk.engine.graphics.rendering.ScreenQuad;
+import mjolk.engine.core.entity.Scene;
+import mjolk.engine.graphics.lighting.DirectionLight;
+import mjolk.engine.graphics.lighting.PointLight;
+import mjolk.engine.graphics.lighting.SpotLight;
+import mjolk.engine.graphics.shader.ShaderManager;
 import mjolk.engine.core.utils.Utils;
-import org.joml.Vector3f;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -73,6 +71,11 @@ public class LightingRenderer {
         shader.setUniform("numSpotLights", spotLights.length);
 
         quad.render();
+    }
+
+    public void cleanup() {
+        shader.cleanup();
+        quad.cleanup();
     }
 
 }

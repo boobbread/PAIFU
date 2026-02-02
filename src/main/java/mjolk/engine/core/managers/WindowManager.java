@@ -1,20 +1,18 @@
 package mjolk.engine.core.managers;
 
-import mjolk.engine.core.entity.Camera;
+import mjolk.engine.graphics.camera.Camera;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL32.*;
 import org.lwjgl.system.MemoryUtil;
 
-import static mjolk.engine.core.entity.Camera.Perspective.NORMAL;
-import static mjolk.engine.core.utils.Constants.*;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.*;
-import static org.lwjgl.opengl.GL30.*;
+import static mjolk.engine.graphics.camera.Camera.Perspective.NORMAL;
+import static mjolk.engine.core.maths.Constants.*;
+import static org.lwjgl.opengl.GL11.glClearColor;
+import static org.lwjgl.opengl.GL11.glEnable;
 
 
 public class WindowManager {

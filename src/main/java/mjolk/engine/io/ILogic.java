@@ -1,4 +1,4 @@
-package mjolk.engine.core.io;
+package mjolk.engine.io;
 
 public interface ILogic {
 

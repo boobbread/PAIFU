@@ -1,4 +1,4 @@
-package mjolk.engine.core.entity;
+package mjolk.engine.graphics.camera;
 
 import org.joml.Vector3f;
 

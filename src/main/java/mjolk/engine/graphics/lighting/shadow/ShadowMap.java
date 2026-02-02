@@ -1,6 +1,6 @@
-package mjolk.engine.core.lighting;
+package mjolk.engine.graphics.lighting.shadow;
 
-import mjolk.engine.core.entity.Texture;
+import mjolk.engine.graphics.material.Texture;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL30.*;
