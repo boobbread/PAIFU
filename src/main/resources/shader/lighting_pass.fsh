@@ -13,9 +13,9 @@ uniform vec3 viewPos;
 
 // ----- Directional Lights -----
 uniform int numDirLights;
-uniform vec3 dirLightDirections[10];
-uniform vec3 dirLightColours[10];
-uniform float dirLightIntensities[10];
+uniform vec3 dirLightDirections[1];
+uniform vec3 dirLightColours[1];
+uniform float dirLightIntensities[1];
 
 // ----- Point Lights -----
 uniform int numPointLights;
@@ -37,43 +37,52 @@ uniform float spotLightExponents[10];
 uniform vec3 spotLightDirections[10];
 uniform float spotLightCutoffs[10];
 
-uniform sampler2D dirShadowMaps[10];
-uniform mat4 dirLightSpaceMatrices[10];
+uniform sampler2D shadowAtlas;
 
-uniform sampler2D spotShadowMaps[10];
+uniform vec4 dirLightRects[1];
+uniform vec4 spotLightRects[10];
+uniform vec4 pointLightFrontRects[20];
+uniform vec4 pointLightBackRects[20];
+
+uniform mat4 dirLightSpaceMatrices[1];
 uniform mat4 spotLightSpaceMatrices[10];
+uniform float pointLightFarPlanes[20];
 
-float ShadowCalculation(vec3 fragPosWorld, vec3 normal, vec3 lightDir, sampler2D shadowMap, mat4 lightSpaceMatrix) {
-    vec4 fragPosLightSpace = lightSpaceMatrix * vec4(fragPosWorld, 1.0);
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-
-    // Outside light frustum → no shadow
-    projCoords = projCoords * 0.5 + 0.5;
-
-    if (projCoords.z > 1.0)
-    return 0.0;
-
-    if (projCoords.x < 0.0 || projCoords.x > 1.0 ||
-    projCoords.y < 0.0 || projCoords.y > 1.0)
-    return 0.0;
-
-    float bias = max(0.005 * (1.0 - dot(normal, lightDir)), 0.001);
-
+float sampleShadow(vec2 uv, float depth, vec4 rect, float bias) {
+    vec2 texelSize = 1.0 / vec2(textureSize(shadowAtlas, 0));
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
 
-    for (int x = -1; x <= 1; ++x) {
-        for (int y = -1; y <= 1; ++y) {
-            float pcfDepth = texture(
-            shadowMap,
-            projCoords.xy + vec2(x, y) * texelSize
-            ).r;
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            vec2 offset = vec2(x, y) * texelSize;
+            vec2 atlasUV = clamp(
+            rect.xy + uv * rect.zw + offset,
+            rect.xy + texelSize,
+            rect.xy + rect.zw - texelSize
+            );
 
-            shadow += (projCoords.z - bias > pcfDepth) ? 1.0 : 0.0;
+            float d = texture(shadowAtlas, atlasUV).r;
+            shadow += (depth - bias > d) ? 1.0 : 0.0;
         }
     }
-
     return shadow / 9.0;
+}
+
+float PointShadowCalculation(vec3 fragPos, vec3 lightPos,
+vec4 frontRect, vec4 backRect, float farPlane, float bias) {
+
+    vec3 L = fragPos - lightPos;
+    float dist = length(L);
+    vec3 dir = normalize(L);
+
+    bool back = dir.z < 0.0;
+    if (back) dir.z = -dir.z;
+
+    float m = 2.0 / (1.0 + dir.z);
+    vec2 uv = dir.xy * m * 0.5 + 0.5;
+
+    vec4 rect = back ? backRect : frontRect;
+    return sampleShadow(uv, dist / farPlane, rect, bias);
 }
 
 void main() {
@@ -88,16 +97,29 @@ void main() {
     for (int i = 0; i < numDirLights; i++) {
         vec3 lightDir = normalize(-dirLightDirections[i]);
 
+        float bias = max(0.0005 * (1.0 - dot(Normal, lightDir)), 0.0005);
+
         float diff = max(dot(Normal, lightDir), 0.0);
         vec3 diffuse = diff * dirLightColours[i] * dirLightIntensities[i];
 
-        float shadow = ShadowCalculation(
-        FragPos,
-        Normal,
-        lightDir,
-        dirShadowMaps[i],
-        dirLightSpaceMatrices[i]
-        );
+        vec4 fragPosLightSpace =
+        dirLightSpaceMatrices[i] * vec4(FragPos, 1.0);
+
+        vec3 proj = fragPosLightSpace.xyz / fragPosLightSpace.w;
+        proj = proj * 0.5 + 0.5;
+
+        float shadow = 0.0;
+        if (proj.z <= 1.0 &&
+        proj.x >= 0.0 && proj.x <= 1.0 &&
+        proj.y >= 0.0 && proj.y <= 1.0) {
+
+            shadow = sampleShadow(
+            proj.xy,
+            proj.z,
+            dirLightRects[i],
+            bias
+            );
+        }
 
         lighting += (1.0 - shadow) * diffuse;
     }
@@ -108,14 +130,17 @@ void main() {
         float distance = length(lightDir);
         lightDir = normalize(lightDir);
 
+        float bias = max(0.0005 * (1.0 - dot(Normal, lightDir)), 0.0005);
+
         float diff = max(dot(Normal, lightDir), 0.0);
 
-        float attenuation = 1.0 / (pointLightConstants[i] +
-        pointLightLinears[i] * distance +
-        pointLightExponents[i] * distance * distance);
+        float attenuation = 1.0 /(pointLightConstants[i] +pointLightLinears[i] * distance +pointLightExponents[i] * distance * distance);
+
+        float shadow = PointShadowCalculation(FragPos, pointLightPositions[i], pointLightFrontRects[i], pointLightBackRects[i], pointLightFarPlanes[i], bias);
 
         vec3 diffuse = diff * pointLightColours[i] * pointLightIntensities[i] * attenuation;
-        lighting += diffuse;
+
+        lighting += (1.0 - shadow) * diffuse;
     }
 
     // ----- Spot Lights -----
@@ -123,6 +148,8 @@ void main() {
         vec3 lightDir = spotLightPositions[i] - FragPos;
         float distance = length(lightDir);
         lightDir = normalize(lightDir);
+
+        float bias = max(0.0005 * (1.0 - dot(Normal, lightDir)), 0.0005);
 
         float diff = max(dot(Normal, lightDir), 0.0);
 
@@ -136,13 +163,24 @@ void main() {
 
         vec3 diffuse = diff * spotLightColours[i] * spotLightIntensities[i] * attenuation * intensity;
 
-        float shadow = ShadowCalculation(
-        FragPos,
-        Normal,
-        lightDir,
-        spotShadowMaps[i],
-        spotLightSpaceMatrices[i]
-        );
+        vec4 fragPosLightSpace =
+        spotLightSpaceMatrices[i] * vec4(FragPos, 1.0);
+
+        vec3 proj = fragPosLightSpace.xyz / fragPosLightSpace.w;
+        proj = proj * 0.5 + 0.5;
+
+        float shadow = 0.0;
+        if (proj.z <= 1.0 &&
+        proj.x >= 0.0 && proj.x <= 1.0 &&
+        proj.y >= 0.0 && proj.y <= 1.0) {
+
+            shadow = sampleShadow(
+            proj.xy,
+            proj.z,
+            spotLightRects[i],
+            bias
+            );
+        }
 
         lighting += (1.0 - shadow) * diffuse;
     }

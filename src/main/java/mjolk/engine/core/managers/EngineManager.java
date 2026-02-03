@@ -47,7 +47,7 @@ public class EngineManager {
         run();
     }
 
-    public void run() {
+    public void run() throws Exception {
         this.isRunning = true;
         long lastTime = System.nanoTime();
 
@@ -83,7 +83,7 @@ public class EngineManager {
         mouseInput.input();
     }
 
-    public void render() {
+    public void render() throws Exception {
         gameLogic.render();
         window.update();
     }

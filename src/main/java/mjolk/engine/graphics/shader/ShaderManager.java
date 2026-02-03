@@ -8,6 +8,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.GL40;
 import org.lwjgl.system.MemoryStack;
 
 import java.util.HashMap;
@@ -20,6 +21,8 @@ public class ShaderManager {
     private final int programID;
     private int vertexShaderID;
     private int fragmentShaderID;
+
+    private int geometryShaderID;
 
     private final Map<String, Integer> uniforms;
 
@@ -155,7 +158,7 @@ public class ShaderManager {
         setUniform(uniformName + ".exponent", pointLight.getExponent());
     }
 
-    public void setUniform(String uniformName, SpotLight spotLight) {
+    public void setUniform(String uniformName, SpotLight spotLight) throws Exception {
         setUniform(uniformName + ".pl", spotLight.getPointLight());
         setUniform(uniformName + ".coneDirection", spotLight.getConeDirection());
         setUniform(uniformName + ".cutoff", spotLight.getCutoff());
@@ -172,14 +175,14 @@ public class ShaderManager {
         setUniform(uniformName + "[" + pos + "]", pointLight);
     }
 
-    public void setUniform(String uniformName, SpotLight[] spotLights) {
+    public void setUniform(String uniformName, SpotLight[] spotLights) throws Exception {
         int numLights = spotLights != null ? spotLights.length : 0;
         for(int i = 0; i < numLights; i++) {
             setUniform(uniformName, spotLights[i], i);
         }
     }
 
-    public void setUniform(String uniformName, SpotLight spotLight, int pos) {
+    public void setUniform(String uniformName, SpotLight spotLight, int pos) throws Exception {
         setUniform(uniformName + "[" + pos + "]", spotLight);
     }
 
@@ -211,7 +214,7 @@ public class ShaderManager {
         }
     }
 
-    public void setSpotLights(String baseName, SpotLight[] lights) {
+    public void setSpotLights(String baseName, SpotLight[] lights) throws Exception {
         for (int i = 0; i < lights.length; i++) {
             SpotLight sl = lights[i];
             setUniform(baseName + "Positions[" + i + "]", sl.getPointLight().getPosition());
@@ -291,6 +294,10 @@ public class ShaderManager {
         fragmentShaderID = createShader(shaderCode, GL20.GL_FRAGMENT_SHADER);
     }
 
+    public void createGeometryShader(String shaderCode) throws Exception {
+        geometryShaderID = createShader(shaderCode, GL40.GL_GEOMETRY_SHADER);
+    }
+
     public int createShader(String shaderCode, int shaderType) throws Exception {
         int shaderID = GL20.glCreateShader(shaderType);
         if (shaderID == 0) {
@@ -316,7 +323,7 @@ public class ShaderManager {
         int status = glGetProgrami(programID, GL_LINK_STATUS);
         if (status == GL_FALSE) {
             String log = glGetProgramInfoLog(programID);
-            throw new RuntimeException("Could not link shader program");
+            throw new RuntimeException("Could not link shader program: " + log);
         }
 
         if (vertexShaderID != 0) {
@@ -325,6 +332,10 @@ public class ShaderManager {
 
         if (fragmentShaderID != 0) {
             GL20.glDetachShader(programID, fragmentShaderID);
+        }
+
+        if (geometryShaderID != 0) {
+            GL20.glDetachShader(programID, geometryShaderID);
         }
 
         GL20.glValidateProgram(programID);
@@ -345,6 +356,30 @@ public class ShaderManager {
         unbind();
         if (programID != 0) {
             GL20.glDeleteProgram(programID);
+        }
+    }
+
+    public void createFloatArray(String uniformName, int maxCount) throws Exception {
+        for (int i = 0; i < maxCount; i++) {
+            createUniform(uniformName + "[" + i + "]");
+        }
+    }
+
+    public void setFloatArray(String uniformName, float[] farPlanes) {
+        for (int i = 0; i < farPlanes.length; i++) {
+            setUniform(uniformName + "[" + i + "]", farPlanes[i]);
+        }
+    }
+
+    public void createVector4fArray(String uniformName, int maxCount) throws Exception {
+        for (int i = 0; i < maxCount; i++) {
+            createUniform(uniformName + "[" + i + "]");
+        }
+    }
+
+    public void setVector4fArray(String uniformName, Vector4f[] vec) {
+        for (int i = 0; i < vec.length; i++) {
+            setUniform(uniformName + "[" + i + "]", vec[i]);
         }
     }
 }

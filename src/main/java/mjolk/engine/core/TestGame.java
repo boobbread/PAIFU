@@ -34,6 +34,8 @@ public class TestGame implements ILogic {
     private GeometryRenderer geometryRenderer;
     private LightingRenderer lightingRenderer;
 
+
+
     private ShadowRenderer shadowRenderer;
 
     Vector3f cameraInc;
@@ -65,26 +67,26 @@ public class TestGame implements ILogic {
 
         Model bunny_model = loader.loadOBJModel("models/bunny.obj");
         bunny_model.setTexture(new Texture(loader.loadTexture("textures/texture.jpg")), .02f);
-        scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1, 0, 1), bunny_model));
+        scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1f, 0, 1), bunny_model));
 
         Model box_model = loader.loadOBJModel("models/box.obj");
         box_model.setTexture(new Texture(loader.loadTexture("textures/texture.jpg")), .02f);
         scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1, 0, 1), box_model));
 
         // Point light
-        Vector3f lightPosition = new Vector3f(1f, 1.9f, 1);
+        Vector3f lightPosition = new Vector3f(0.1f, 1.9f, 1);
         Vector3f lightColour = new Vector3f(1, 1, 1);
         PointLight pointLight = new PointLight(lightColour, lightPosition, 1f, 1f, 0.09f, 0.032f);
-
+        scene.addLight(pointLight);
 
         DirectionLight directionLight = new DirectionLight(new Vector3f(1, 1, 1), new Vector3f(-0.3f, -1.0f, -0.2f), 1f);
-        scene.addLight(directionLight);
+//        scene.addLight(directionLight);
 
-        SpotLight spotLight = new SpotLight(new PointLight(new Vector3f(1, 0, 0), new Vector3f(1.9f, 1.9f, 1), 0.5f, 1f, 0.09f, 0.032f), new Vector3f(-1, -1, 0), (float) Math.toRadians(30));
-        scene.addLight(spotLight);
+        SpotLight spotLight = new SpotLight(new PointLight(new Vector3f(1, 0, 0), new Vector3f(1.9f, 1.9f, 1), 1f, 1f, 0.09f, 0.032f), new Vector3f(-1, -1, 0), (float) Math.toRadians(30));
+//        scene.addLight(spotLight);
 
-        SpotLight spotLight2 = new SpotLight(new PointLight(new Vector3f(0, 0, 1), new Vector3f(0.1f, 1.9f, 1), 0.5f, 1f, 0.09f, 0.032f), new Vector3f(1, -1, 0), (float) Math.toRadians(30));
-        scene.addLight(spotLight2);
+        SpotLight spotLight2 = new SpotLight(new PointLight(new Vector3f(0, 0, 1), new Vector3f(0.1f, 1.9f, 1), 1f, 1f, 0.09f, 0.032f), new Vector3f(1, -1, 0), (float) Math.toRadians(30));
+//        scene.addLight(spotLight2);
 
         LOGGER.info("TestGame init complete");
     }
@@ -128,12 +130,20 @@ public class TestGame implements ILogic {
     }
 
     @Override
-    public void render() {
+    public void render() throws Exception {
 
         geometryRenderer.geometryPass(scene);
         shadowRenderer.render(scene);
         lightingRenderer.render(scene, geometryRenderer, shadowRenderer);
 
+    }
+
+    public ShadowRenderer getShadowRenderer() {
+        return shadowRenderer;
+    }
+
+    public void setShadowRenderer(ShadowRenderer shadowRenderer) {
+        this.shadowRenderer = shadowRenderer;
     }
 
     @Override

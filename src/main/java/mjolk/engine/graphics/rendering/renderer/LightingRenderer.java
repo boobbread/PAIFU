@@ -8,6 +8,7 @@ import mjolk.engine.graphics.lighting.SpotLight;
 import mjolk.engine.graphics.shader.ShaderManager;
 import mjolk.engine.core.utils.Utils;
 import org.joml.Matrix4f;
+import org.joml.Vector4f;
 
 import java.util.logging.Logger;
 
@@ -39,20 +40,25 @@ public class LightingRenderer {
         shader.createUniform("viewPos");
 
         // Automatically create flattened light arrays
-        shader.createDirectionalLightArray("dirLight", 10); // max 10 directional lights
+        shader.createDirectionalLightArray("dirLight", 1); // max 10 directional lights
         shader.createPointLightArray("pointLight", 20);      // max 20 point lights
         shader.createSpotLightArray("spotLight", 10);       // max 10 spot lights
 
-        shader.createDirectionalShadowArray("dirShadowMaps", 10);
-        shader.createMatrixArray("dirLightSpaceMatrices", 10);
+        shader.createUniform("shadowAtlas");
 
-        shader.createDirectionalShadowArray("spotShadowMaps", 10);
+        shader.createMatrixArray("dirLightSpaceMatrices", 1);
         shader.createMatrixArray("spotLightSpaceMatrices", 10);
+        shader.createFloatArray("pointLightFarPlanes", 20);
+
+        shader.createVector4fArray("dirLightRects", 1);
+        shader.createVector4fArray("spotLightRects", 10);
+        shader.createVector4fArray("pointLightFrontRects", 20);
+        shader.createVector4fArray("pointLightBackRects", 20);
 
         quad.init();
     }
 
-    public void render(Scene scene, GeometryRenderer geometryRenderer, ShadowRenderer shadowRenderer) {
+    public void render(Scene scene, GeometryRenderer geometryRenderer, ShadowRenderer shadowRenderer) throws Exception {
         glClear(GL_COLOR_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
 
@@ -80,15 +86,12 @@ public class LightingRenderer {
         shader.setSpotLights("spotLight", spotLights);
         shader.setUniform("numSpotLights", spotLights.length);
 
+        shadowRenderer.getAtlas().getDepthTexture().bind(3);
+        shader.setUniform("shadowAtlas", 3);
+
         int textureUnit = 3;
 
         // ---- Directional shadows ----
-        for (int i = 0; i < dirLights.length; i++) {
-            dirLights[i].getShadowMap().getDepthTexture().bind(textureUnit + i);
-        }
-
-        shader.setShadowMaps("dirShadowMaps", textureUnit, dirLights.length);
-
         Matrix4f[] dirMatrices = new Matrix4f[dirLights.length];
         for (int i = 0; i < dirLights.length; i++) {
             dirMatrices[i] = dirLights[i].getViewProjectionMatrix();
@@ -96,13 +99,13 @@ public class LightingRenderer {
 
         shader.setMatrixArray("dirLightSpaceMatrices", dirMatrices);
 
+        Vector4f[] dirRects = new Vector4f[dirLights.length];
+        for (int i = 0; i < dirLights.length; i++)
+            dirRects[i] = dirLights[i].getShadowRect();
+
+        shader.setVector4fArray("dirLightRects", dirRects);
+
         textureUnit += dirLights.length;
-
-        for (int i = 0; i < spotLights.length; i++) {
-            spotLights[i].getShadowMap().getDepthTexture().bind(textureUnit + i);
-        }
-
-        shader.setShadowMaps("spotShadowMaps", textureUnit, spotLights.length);
 
         Matrix4f[] spotMatrices = new Matrix4f[spotLights.length];
         for (int i = 0; i < spotLights.length; i++) {
@@ -111,7 +114,34 @@ public class LightingRenderer {
 
         shader.setMatrixArray("spotLightSpaceMatrices", spotMatrices);
 
+        Vector4f[] spotRects = new Vector4f[spotLights.length];
+        for (int i = 0; i < spotLights.length; i++)
+            spotRects[i] = spotLights[i].getShadowRect();
+
+        shader.setVector4fArray("spotLightRects", spotRects);
+
         textureUnit += spotLights.length;
+
+        float[] farPlanes = new float[pointLights.length];
+        for (int i = 0; i < pointLights.length; i++) {
+            farPlanes[i] = pointLights[i].getFarPlane();
+        }
+
+        Vector4f[] pointRectsFront = new Vector4f[pointLights.length];
+        for (int i = 0; i < pointLights.length; i++)
+            pointRectsFront[i] = pointLights[i].getFrontRect();
+
+        shader.setVector4fArray("pointLightFrontRects", pointRectsFront);
+
+        Vector4f[] pointRectsBack = new Vector4f[pointLights.length];
+        for (int i = 0; i < pointLights.length; i++)
+            pointRectsBack[i] = pointLights[i].getBackRect();
+
+        shader.setVector4fArray("pointLightBackRects", pointRectsBack);
+
+        shader.setFloatArray("pointLightFarPlanes", farPlanes);
+
+        textureUnit += pointLights.length;
 
         quad.render();
     }

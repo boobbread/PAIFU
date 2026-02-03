@@ -1,20 +1,18 @@
 package mjolk.engine.graphics.lighting;
 
-import mjolk.engine.graphics.lighting.shadow.ShadowMap;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.lwjgl.opengl.GL14;
 
 public class DirectionLight extends Light {
 
     private Vector3f direction;
-    private ShadowMap shadowMap;
 
     public DirectionLight(Vector3f colour, Vector3f direction, float intensity) throws Exception {
         super(colour, intensity);
         this.direction = direction;
 
         this.castsShadows = true;
-        shadowMap = new ShadowMap(2048,2048);
     }
 
     public Vector3f getDirection() {
@@ -45,9 +43,5 @@ public class DirectionLight extends Light {
         Matrix4f lightProjectionMatrix = new Matrix4f().ortho(left, right, bottom, top, near, far);
 
         return new Matrix4f(lightProjectionMatrix).mul(lightViewMatrix);
-    }
-
-    public ShadowMap getShadowMap() {
-        return shadowMap;
     }
 }

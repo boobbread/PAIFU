@@ -1,24 +1,25 @@
 package mjolk.engine.graphics.lighting;
 
-import mjolk.engine.graphics.lighting.shadow.ShadowMap;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+
+import static org.lwjgl.opengl.GL30.GL_COMPARE_REF_TO_TEXTURE;
 
 public class SpotLight extends PointLight {
 
     private Vector3f coneDirection;
     private float cutoff;
 
-    private ShadowMap shadowMap;
+    private PointLight pointLight;
 
     public SpotLight(PointLight pointLight, Vector3f coneDirection, float cutoff) throws Exception {
         super(pointLight.getColour(), pointLight.getPosition(), pointLight.getIntensity(),
                 pointLight.getConstant(), pointLight.getLinear(), pointLight.getExponent());
         this.cutoff = cutoff;
         this.coneDirection = coneDirection;
+        this.pointLight = pointLight;
 
         this.castsShadows = true;
-        shadowMap = new ShadowMap(2048,2048);
     }
 
     public Vector3f getConeDirection() {
@@ -37,9 +38,8 @@ public class SpotLight extends PointLight {
         this.cutoff = cutoff;
     }
 
-    public PointLight getPointLight() {
-        return new PointLight(getColour(), getPosition(), getIntensity(),
-                getConstant(), getLinear(), getExponent());
+    public PointLight getPointLight() throws Exception {
+        return this.pointLight;
     }
 
     public Matrix4f getViewProjectionMatrix() {
@@ -52,9 +52,5 @@ public class SpotLight extends PointLight {
         Matrix4f lightProjectionMatrix = new Matrix4f().perspective(fovy, 1f, 0.01f, 100.0f);
 
         return new Matrix4f(lightProjectionMatrix).mul(lightViewMatrix);
-    }
-
-    public ShadowMap getShadowMap() {
-        return shadowMap;
     }
 }

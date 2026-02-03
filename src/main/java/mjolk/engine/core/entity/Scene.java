@@ -1,11 +1,13 @@
 package mjolk.engine.core.entity;
 
+import mjolk.engine.Launcher;
 import mjolk.engine.graphics.camera.Camera;
 import mjolk.engine.graphics.lighting.DirectionLight;
 import mjolk.engine.graphics.lighting.Light;
 import mjolk.engine.graphics.lighting.PointLight;
 import mjolk.engine.graphics.lighting.SpotLight;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +44,13 @@ public class Scene {
     public void removeEntity(Entity e) { entities.remove(e); }
 
     public List<Light> getLights() { return lights; }
-    public void addLight(Light l) { lights.add(l); }
+    public void addLight(Light l) {
+        lights.add(l);
+        if (l.castsShadows()) {
+            Vector4f rect = Launcher.getGame().getShadowRenderer().getAtlas().allocateTile();
+            l.setShadowRect(rect);
+        }
+    }
     public void removeLight(Light l) { lights.remove(l); }
 
     public List<DirectionLight> getDirectionalLights() {

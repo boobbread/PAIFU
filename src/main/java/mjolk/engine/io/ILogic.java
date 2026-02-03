@@ -8,7 +8,7 @@ public interface ILogic {
 
     void update(float interval, MouseInput mouseInput);
 
-    void render();
+    void render() throws Exception;
 
     void cleanup();
 }
