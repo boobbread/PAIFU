@@ -26,9 +26,6 @@ public class PointLight extends Light {
         this.castsShadows = true;
 
         LOGGER.warning("PointLight created: " + this);
-
-        frontRect = new Vector4f(0.0f, 0.0f, 0.25f, 0.25f);
-        backRect  = new Vector4f(0.25f, 0.0f, 0.25f, 0.25f);
     }
 
     public float getExponent() {
@@ -68,8 +65,27 @@ public class PointLight extends Light {
         return null;
     }
 
+    public float getNearPlane() {
+        return 0.1f;
+    }
     public float getFarPlane() {
-        return 50f;
+        float q = exponent;   // quadratic
+        float l = linear;
+        float c = constant;
+
+        float rhs = 1.0f / 0.02f;
+
+        float A = q;
+        float B = l;
+        float C = c - rhs;
+
+        float discriminant = B * B - 4.0f * A * C;
+
+        if (discriminant < 0.0f) {
+            return Float.POSITIVE_INFINITY;
+        }
+
+        return (-B + (float)Math.sqrt(discriminant)) / (2.0f * A);
     }
 
     public Vector4f getFrontRect() {

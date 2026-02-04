@@ -1,5 +1,7 @@
 package mjolk.engine.graphics.rendering.renderer;
 
+import mjolk.engine.Launcher;
+import mjolk.engine.graphics.lighting.shadow.ShadowAtlas;
 import mjolk.engine.graphics.rendering.ScreenQuad;
 import mjolk.engine.core.entity.Scene;
 import mjolk.engine.graphics.lighting.DirectionLight;
@@ -10,19 +12,26 @@ import mjolk.engine.core.utils.Utils;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
+import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
+import static org.lwjgl.opengl.GL30.glBindFramebuffer;
 
 public class LightingRenderer {
     private static final Logger LOGGER = Logger.getLogger(LightingRenderer.class.getName());
 
     private ShaderManager shader;
+    private ShaderManager debug;
     private ScreenQuad quad;
 
     public LightingRenderer() throws Exception {
         LOGGER.info("LightingRenderer constructor called");
         shader = new ShaderManager();
+        debug = new ShaderManager();
     }
 
     public void init() throws Exception {
@@ -55,12 +64,19 @@ public class LightingRenderer {
         shader.createVector4fArray("pointLightFrontRects", 20);
         shader.createVector4fArray("pointLightBackRects", 20);
 
+        debug.createVertexShader(Utils.loadShader("/shader/debug.vsh"));
+        debug.createFragmentShader(Utils.loadShader("/shader/debug.fsh"));
+        debug.link();
+
+        debug.createUniform("shadowAtlas");
+
         quad.init();
     }
 
     public void render(Scene scene, GeometryRenderer geometryRenderer, ShadowRenderer shadowRenderer) throws Exception {
         glClear(GL_COLOR_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
 
         shader.bind();
 
@@ -144,6 +160,13 @@ public class LightingRenderer {
         textureUnit += pointLights.length;
 
         quad.render();
+//
+//        debug.bind();
+//        glBindTexture(GL_TEXTURE_2D, shadowRenderer.getAtlas().getDepthTexture().getId());
+//        debug.setUniform("shadowAtlas", 0);
+//
+//        quad.render();
+//        debug.unbind();
     }
 
     public void cleanup() {

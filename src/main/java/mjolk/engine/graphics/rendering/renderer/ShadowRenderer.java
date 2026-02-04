@@ -11,6 +11,7 @@ import mjolk.engine.graphics.lighting.SpotLight;
 import mjolk.engine.graphics.lighting.shadow.ShadowAtlas;
 import mjolk.engine.graphics.shader.ShaderManager;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.logging.Logger;
@@ -48,9 +49,11 @@ public class ShadowRenderer {
         pointLightShader.link();
 
         pointLightShader.createUniform("lightPos");
-        pointLightShader.createUniform("farPlane");
         pointLightShader.createUniform("model");
-        pointLightShader.createUniform("hemisphere");
+        pointLightShader.createUniform("lightView");
+        pointLightShader.createUniform("paraboloidSide");
+        pointLightShader.createUniform("farPlane");
+        pointLightShader.createUniform("nearPlane");
 
         atlas = new ShadowAtlas();
     }
@@ -102,31 +105,56 @@ public class ShadowRenderer {
 
     private void renderPointLightShadow(Scene scene, PointLight light) {
 
+        shader.unbind();
+
         pointLightShader.bind();
         pointLightShader.setUniform("lightPos", light.getPosition());
         pointLightShader.setUniform("farPlane", light.getFarPlane());
+        pointLightShader.setUniform("nearPlane", light.getNearPlane());
 
-        renderHemisphere(scene, light.getFrontRect(), 0);
-        renderHemisphere(scene, light.getBackRect(), 1);
+        Vector4f frontRect = light.getFrontRect();
+        Vector4f backRect = light.getBackRect();
+
+        // Check if they're the same
+        if (frontRect.equals(backRect)) {
+            LOGGER.severe("ERROR: Front and back rectangles are the same!");
+        }
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glEnable(GL_CULL_FACE);
+
+        glCullFace(GL_BACK);
+        renderHemisphere(scene, frontRect, 1, light.getPosition());
+        glCullFace(GL_FRONT);
+        renderHemisphere(scene, backRect, -1, light.getPosition());
+        glCullFace(GL_BACK);
+        shader.bind();
     }
 
-    private void renderHemisphere(Scene scene, Vector4f r, int hemi) {
-        glViewport(
-                (int)(r.x * ShadowAtlas.SIZE),
-                (int)(r.y * ShadowAtlas.SIZE),
-                (int)(r.z * ShadowAtlas.SIZE),
-                (int)(r.w * ShadowAtlas.SIZE)
-        );
+    private void renderHemisphere(Scene scene, Vector4f r, int hemi, Vector3f lightPos) {
+        int x = Math.round(r.x * ShadowAtlas.SIZE);
+        int y = Math.round(r.y * ShadowAtlas.SIZE);
+        int w = Math.round(r.z * ShadowAtlas.SIZE);
+        int h = Math.round(r.w * ShadowAtlas.SIZE);
 
-        pointLightShader.setUniform("hemisphere", hemi);
+        glViewport(x, y, w, h);
+
+        Matrix4f view = new Matrix4f().identity();
+        view.translate(-lightPos.x, -lightPos.y, -lightPos.z);
+
+        pointLightShader.setUniform("paraboloidSide", hemi);
+        pointLightShader.setUniform("lightView", view);
 
         for (Entity e : scene.getEntities()) {
-            pointLightShader.setUniform("model",
-                    Transformation.createTransformationMatrix(e));
+            Matrix4f model = Transformation.createTransformationMatrix(e);
+            pointLightShader.setUniform("model", model);
+
             glBindVertexArray(e.getModel().getId());
             glDrawElements(GL_TRIANGLES,
                     e.getModel().getVertexCount(),
                     GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
         }
     }
 

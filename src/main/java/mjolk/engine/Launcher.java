@@ -20,7 +20,7 @@ public class Launcher {
     public static void main(String[] args) throws Exception {
         LOGGER.info("Launcher called");
 
-        window = new WindowManager(Constants.TITLE, 1600, 900, false);
+        window = new WindowManager(Constants.TITLE, 1920, 1080, false);
 
         game = new TestGame();
         EngineManager engine = new EngineManager();

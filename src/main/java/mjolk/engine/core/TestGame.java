@@ -61,31 +61,40 @@ public class TestGame implements ILogic {
         loader = new ObjectLoader();
 
         Camera camera = new Camera();
-        camera.setPosition(0,0,5);
+        camera.setPosition(0,7.5f,5);
+        camera.setRotation(45, 180, 0);
 
         scene = new Scene(camera);
 
         Model bunny_model = loader.loadOBJModel("models/bunny.obj");
         bunny_model.setTexture(new Texture(loader.loadTexture("textures/texture.jpg")), .02f);
-        scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1f, 0, 1), bunny_model));
+        scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1f, 0, 2), bunny_model));
 
         Model box_model = loader.loadOBJModel("models/box.obj");
         box_model.setTexture(new Texture(loader.loadTexture("textures/texture.jpg")), .02f);
-        scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1, 0, 1), box_model));
+        scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1, 0, 2), box_model));
+
+        Model flat_model = loader.loadOBJModel("models/flat.obj");
+        flat_model.setTexture(new Texture(loader.loadTexture("textures/texture.jpg")), .02f);
+        scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1, -1, 1), flat_model));
+
+        Model church_model = loader.loadOBJModel("models/church_2.obj");
+        church_model.setTexture(new Texture(loader.loadTexture("textures/texture.jpg")), .02f);
+        scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(10, -1, 1), church_model));
 
         // Point light
-        Vector3f lightPosition = new Vector3f(0.1f, 1.9f, 1);
+        Vector3f lightPosition = new Vector3f(1f, 1.9f, 2);
         Vector3f lightColour = new Vector3f(1, 1, 1);
-        PointLight pointLight = new PointLight(lightColour, lightPosition, 1f, 1f, 0.09f, 0.032f);
-        scene.addLight(pointLight);
+        PointLight pointLight = new PointLight(lightColour, lightPosition, 1f, 1f, 0.7f, 1.8f);
+//        scene.addLight(pointLight);
 
         DirectionLight directionLight = new DirectionLight(new Vector3f(1, 1, 1), new Vector3f(-0.3f, -1.0f, -0.2f), 1f);
-//        scene.addLight(directionLight);
+        scene.addLight(directionLight);
 
-        SpotLight spotLight = new SpotLight(new PointLight(new Vector3f(1, 0, 0), new Vector3f(1.9f, 1.9f, 1), 1f, 1f, 0.09f, 0.032f), new Vector3f(-1, -1, 0), (float) Math.toRadians(30));
+        SpotLight spotLight = new SpotLight(new PointLight(new Vector3f(1, 0, 0), new Vector3f(1.9f, 1.9f, 2), 1f, 1f, 0.09f, 0.032f), new Vector3f(-1, -1, 0), (float) Math.toRadians(30));
 //        scene.addLight(spotLight);
 
-        SpotLight spotLight2 = new SpotLight(new PointLight(new Vector3f(0, 0, 1), new Vector3f(0.1f, 1.9f, 1), 1f, 1f, 0.09f, 0.032f), new Vector3f(1, -1, 0), (float) Math.toRadians(30));
+        SpotLight spotLight2 = new SpotLight(new PointLight(new Vector3f(0, 0, 1), new Vector3f(0.1f, 1.9f, 2), 1f, 1f, 0.09f, 0.032f), new Vector3f(1, -1, 0), (float) Math.toRadians(30));
 //        scene.addLight(spotLight2);
 
         LOGGER.info("TestGame init complete");
@@ -114,6 +123,20 @@ public class TestGame implements ILogic {
         if (window.isKeyPressed(GLFW.GLFW_KEY_SPACE)) {
             cameraInc.y = 1;
         }
+
+        if (window.isKeyPressed(GLFW.GLFW_KEY_UP)) {
+            scene.getPointLights().getFirst().getPosition().z += 0.001f;
+        }
+        if (window.isKeyPressed(GLFW.GLFW_KEY_DOWN)) {
+            scene.getPointLights().getFirst().getPosition().z -= 0.001f;
+        }
+        if (window.isKeyPressed(GLFW.GLFW_KEY_LEFT)) {
+            scene.getPointLights().getFirst().getPosition().x -= 0.001f;
+        }
+        if (window.isKeyPressed(GLFW.GLFW_KEY_RIGHT)) {
+            scene.getPointLights().getFirst().getPosition().x += 0.001f;
+        }
+
     }
 
     @Override

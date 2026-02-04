@@ -1,6 +1,7 @@
 package mjolk.engine.core.managers;
 
 import mjolk.engine.Launcher;
+import mjolk.engine.core.utils.FPSCounter;
 import mjolk.engine.graphics.rendering.renderer.ShadowRenderer;
 import mjolk.engine.io.ILogic;
 import mjolk.engine.io.MouseInput;
@@ -25,6 +26,7 @@ public class EngineManager {
     private GLFWErrorCallback errorCallback;
     private ILogic gameLogic;
     private MouseInput mouseInput;
+    private FPSCounter fpsCounter = new FPSCounter();
 
     private void init() throws Exception {
         LOGGER.info("EngineManager init called");
@@ -89,7 +91,11 @@ public class EngineManager {
     }
 
     private void update(float interval) {
+        fpsCounter.update();
+        fps =  fpsCounter.getFPS();
+
         gameLogic.update(interval, mouseInput);
+        window.setTitle("fps: " + fps);
     }
 
     private void cleanup() {

@@ -68,21 +68,56 @@ float sampleShadow(vec2 uv, float depth, vec4 rect, float bias) {
     return shadow / 9.0;
 }
 
-float PointShadowCalculation(vec3 fragPos, vec3 lightPos,
-vec4 frontRect, vec4 backRect, float farPlane, float bias) {
-
+float PointShadowCalculation(
+vec3 fragPos,
+vec3 lightPos,
+vec4 frontRect,
+vec4 backRect,
+float farPlane,
+float bias
+) {
     vec3 L = fragPos - lightPos;
     float dist = length(L);
     vec3 dir = normalize(L);
 
-    bool back = dir.z < 0.0;
-    if (back) dir.z = -dir.z;
+    const float seamWidth = 0.005;
 
-    float m = 2.0 / (1.0 + dir.z);
-    vec2 uv = dir.xy * m * 0.5 + 0.5;
+    float frontW = smoothstep(-seamWidth, seamWidth, dir.z);
+    float backW  = 1.0 - frontW;
 
-    vec4 rect = back ? backRect : frontRect;
-    return sampleShadow(uv, dist / farPlane, rect, bias);
+    float shadow = 0.0;
+
+    {
+        vec3 d = dir;
+        d.z = abs(d.z);
+
+        float denom = 1.0 + d.z;
+        vec2 uv = d.xy / denom * 0.5 + 0.5;
+
+        if (uv.x >= 0.0 && uv.x <= 1.0 &&
+        uv.y >= 0.0 && uv.y <= 1.0) {
+
+            shadow += frontW *
+            sampleShadow(uv, dist / farPlane, frontRect, bias);
+        }
+    }
+
+    {
+        vec3 d = dir;
+        d.z = abs(d.z);
+
+        float denom = 1.0 + d.z;
+        vec2 uv = d.xy / denom * 0.5 + 0.5;
+
+        if (uv.x >= 0.0 && uv.x <= 1.0 &&
+        uv.y >= 0.0 && uv.y <= 1.0) {
+
+            shadow += backW *
+            sampleShadow(uv, dist / farPlane, backRect, bias);
+        }
+    }
+
+    return shadow;
 }
 
 void main() {
@@ -97,14 +132,19 @@ void main() {
     for (int i = 0; i < numDirLights; i++) {
         vec3 lightDir = normalize(-dirLightDirections[i]);
 
-        float bias = max(0.0005 * (1.0 - dot(Normal, lightDir)), 0.0005);
+        // Calculate bias in light space units
+        // Orthographic projection: depth is linear in light space
+        float bias = max(0.005 * (1.0 - dot(Normal, lightDir)), 0.005);
+
+        // OR use a fixed bias that works for your scene scale
+        // float bias = 0.001; // Adjust based on scene scale
 
         float diff = max(dot(Normal, lightDir), 0.0);
         vec3 diffuse = diff * dirLightColours[i] * dirLightIntensities[i];
 
-        vec4 fragPosLightSpace =
-        dirLightSpaceMatrices[i] * vec4(FragPos, 1.0);
+        vec4 fragPosLightSpace = dirLightSpaceMatrices[i] * vec4(FragPos, 1.0);
 
+        // Transform to NDC [0,1] range
         vec3 proj = fragPosLightSpace.xyz / fragPosLightSpace.w;
         proj = proj * 0.5 + 0.5;
 
@@ -113,12 +153,7 @@ void main() {
         proj.x >= 0.0 && proj.x <= 1.0 &&
         proj.y >= 0.0 && proj.y <= 1.0) {
 
-            shadow = sampleShadow(
-            proj.xy,
-            proj.z,
-            dirLightRects[i],
-            bias
-            );
+            shadow = sampleShadow(proj.xy, proj.z, dirLightRects[i], bias);
         }
 
         lighting += (1.0 - shadow) * diffuse;
@@ -130,7 +165,8 @@ void main() {
         float distance = length(lightDir);
         lightDir = normalize(lightDir);
 
-        float bias = max(0.0005 * (1.0 - dot(Normal, lightDir)), 0.0005);
+        float bias = max(0.005 * (1.0 - dot(Normal, lightDir)), 0.0005);
+        bias *= distance / pointLightFarPlanes[i];
 
         float diff = max(dot(Normal, lightDir), 0.0);
 

@@ -49,7 +49,7 @@ public class SpotLight extends PointLight {
 
         Vector3f up = Math.abs(coneDir.y) > 0.99f ? new Vector3f(0, 0, -1) : new Vector3f(0,1,0);
         Matrix4f lightViewMatrix = new Matrix4f().lookAt(lightPos, new Vector3f(lightPos).add(new Vector3f(coneDir)), up);
-        Matrix4f lightProjectionMatrix = new Matrix4f().perspective(fovy, 1f, 0.01f, 100.0f);
+        Matrix4f lightProjectionMatrix = new Matrix4f().perspective(fovy, 1f, 0.01f, this.pointLight.getFarPlane());
 
         return new Matrix4f(lightProjectionMatrix).mul(lightViewMatrix);
     }

@@ -47,8 +47,20 @@ public class Scene {
     public void addLight(Light l) {
         lights.add(l);
         if (l.castsShadows()) {
-            Vector4f rect = Launcher.getGame().getShadowRenderer().getAtlas().allocateTile();
-            l.setShadowRect(rect);
+            if (l instanceof PointLight && !(l instanceof SpotLight)) {
+                Vector4f frontRect = Launcher.getGame().getShadowRenderer().getAtlas().allocateTile();
+                Vector4f backRect = Launcher.getGame().getShadowRenderer().getAtlas().allocateTile();
+                ((PointLight) l).setFrontRect(frontRect);
+                ((PointLight) l).setBackRect(backRect);
+
+                System.out.println(frontRect);
+                System.out.println(backRect);
+            } else {
+                System.out.println("rect for non-point lights called");
+                Vector4f rect = Launcher.getGame().getShadowRenderer().getAtlas().allocateTile();
+                l.setShadowRect(rect);
+                System.out.println(rect);
+            }
         }
     }
     public void removeLight(Light l) { lights.remove(l); }
@@ -66,7 +78,7 @@ public class Scene {
     public List<PointLight> getPointLights() {
         List<PointLight> pts = new ArrayList<>();
         for (Light l : lights) {
-            if (l instanceof PointLight) {
+            if (l instanceof PointLight && !(l instanceof SpotLight)) {
                 pts.add((PointLight) l);
             }
         }
