@@ -1,54 +1,62 @@
-#version 400 core
+#version 420 core
+
+#define MAX_POINT_LIGHTS 64
+#define MAX_SPOT_LIGHTS 64
+#define MAX_DIRECTIONAL_LIGHTS 64
 
 in vec2 TexCoords;
 out vec4 FragColour;
 
-// ----- G-buffer -----
+struct PointLight { // total 96 bytes
+    vec4 position; // xyz = position, w = buffer : 16b
+    vec4 colour; // xyz = rgb, w = buffer : 16b
+    vec4 params; // x = intensity, y = constant, z = linear, w = exponential : 16b
+    vec4 fRect; // direct transfer : 16b
+    vec4 bRect; // direct transfer : 16b
+    vec4 farPlane; // x = farPlane, yzw = reserved : 16b
+};
+
+layout(std140, binding = 1) uniform PointLightBlock { // total 6160 bytes
+    ivec3 header; // x = numPointLights, yzw = padding : 16b
+    PointLight lights[MAX_POINT_LIGHTS]; // 96 * 64 = 6144 bytes
+} pointLights;
+
+struct SpotLight { // total 160 bytes
+    vec4 position; // xyz = position, w = buffer : 16b
+    vec4 colour; // xyz = rgb, w = buffer : 16b
+    vec4 params; // x = intensity, y = constant, z = linear, w = exponential : 16b
+    vec4 rect; // direct transfer : 16b
+    vec4 direction; // xyz = direction, w = buffer : 16b
+    mat4 lightSpaceMatrix; // 64b
+    vec4 cutoff; // x = cutoff, yzw = reserved : 16b
+};
+
+layout(std140, binding = 2) uniform SpotLightBlock { // total 10256 bytes
+    ivec3 header; // x = numSpotLights, yzw = padding : 16b
+    SpotLight lights[MAX_SPOT_LIGHTS]; // 160 * 64 = 10240 bytes = ~10KB
+} spotLights;
+
+struct DirectionLight { // total 128 bytes
+    vec4 direction; // xyz = direction, w = buffer : 16b
+    vec4 colour; // xyz = rgb, w = buffer : 16b
+    vec4 intensity; // x = intensity, yzw = reserved : 16b
+    vec4 rect; // direct transfer : 16b
+    mat4 lightSpaceMatrix; // 64b
+};
+
+layout(std140, binding = 3) uniform DirectionLightBlock { // total 8208 bytes
+    ivec3 header; // x = numDirectionLights, yzw = padding : 16b
+    DirectionLight lights[MAX_DIRECTIONAL_LIGHTS]; // 128 * 64 = 8192 bytes = ~8KB
+} dirLights;
+
+
+uniform sampler2D shadowAtlas;
+
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
 
-// ----- Camera -----
-uniform vec3 viewPos;
-
-// ----- Directional Lights -----
-uniform int numDirLights; // covered by UBO
-uniform vec3 dirLightDirections[1]; // covered by UBO
-uniform vec3 dirLightColours[1]; // covered by UBO
-uniform float dirLightIntensities[1]; // covered by UBO
-
-// ----- Point Lights -----
-uniform int numPointLights; // covered by UBO
-uniform vec3 pointLightPositions[20]; // covered by UBO
-uniform vec3 pointLightColours[20]; // covered by UBO
-uniform float pointLightIntensities[20]; // covered by UBO
-uniform float pointLightConstants[20]; // covered by UBO
-uniform float pointLightLinears[20]; // covered by UBO
-uniform float pointLightExponents[20]; // covered by UBO
-
-// ----- Spot Lights -----
-uniform int numSpotLights; // covered by UBO
-uniform vec3 spotLightPositions[10]; // covered by UBO
-uniform vec3 spotLightColours[10]; // covered by UBO
-uniform float spotLightIntensities[10]; // covered by UBO
-uniform float spotLightConstants[10]; // covered by UBO
-uniform float spotLightLinears[10]; // covered by UBO
-uniform float spotLightExponents[10]; // covered by UBO
-uniform vec3 spotLightDirections[10]; // covered by UBO
-uniform float spotLightCutoffs[10]; // covered by UBO
-
-uniform sampler2D shadowAtlas;
-
-uniform vec4 dirLightRects[1]; // covered by UBO
-uniform vec4 spotLightRects[10]; // covered by UBO
-uniform vec4 pointLightFrontRects[20]; // covered by UBO
-uniform vec4 pointLightBackRects[20]; // covered by UBO
-
-uniform mat4 dirLightSpaceMatrices[1]; // covered by UBO
-uniform mat4 spotLightSpaceMatrices[10]; // covered by UBO
-uniform float pointLightFarPlanes[20]; // covered by UBO
-
-// UBO creates a 9-fold decrease in uniforms 27 -> 3 yippers
+// Helper functions
 
 float sampleShadow(vec2 uv, float depth, vec4 rect, float bias) {
     vec2 texelSize = 1.0 / vec2(textureSize(shadowAtlas, 0));
@@ -70,14 +78,7 @@ float sampleShadow(vec2 uv, float depth, vec4 rect, float bias) {
     return shadow / 9.0;
 }
 
-float PointShadowCalculation(
-vec3 fragPos,
-vec3 lightPos,
-vec4 frontRect,
-vec4 backRect,
-float farPlane,
-float bias
-) {
+float PointShadowCalculation(vec3 fragPos, vec3 lightPos, vec4 frontRect, vec4 backRect, float farPlane, float bias) {
     vec3 L = fragPos - lightPos;
     float dist = length(L);
     vec3 dir = normalize(L);
@@ -98,7 +99,6 @@ float bias
 
         if (uv.x >= 0.0 && uv.x <= 1.0 &&
         uv.y >= 0.0 && uv.y <= 1.0) {
-
             shadow += frontW *
             sampleShadow(uv, dist / farPlane, frontRect, bias);
         }
@@ -113,7 +113,6 @@ float bias
 
         if (uv.x >= 0.0 && uv.x <= 1.0 &&
         uv.y >= 0.0 && uv.y <= 1.0) {
-
             shadow += backW *
             sampleShadow(uv, dist / farPlane, backRect, bias);
         }
@@ -130,23 +129,19 @@ void main() {
 
     vec3 lighting = vec3(0.0);
 
-    // ----- Directional Lights -----
-    for (int i = 0; i < numDirLights; i++) {
-        vec3 lightDir = normalize(-dirLightDirections[i]);
+    // Directional lights
+    for (int i = 0; i < dirLights.header.x; i++) {
+        DirectionLight light = dirLights.lights[i];
 
-        // Calculate bias in light space units
-        // Orthographic projection: depth is linear in light space
+        vec3 lightDir = normalize(-light.direction.xyz);
+
         float bias = max(0.005 * (1.0 - dot(Normal, lightDir)), 0.005);
 
-        // OR use a fixed bias that works for your scene scale
-        // float bias = 0.001; // Adjust based on scene scale
-
         float diff = max(dot(Normal, lightDir), 0.0);
-        vec3 diffuse = diff * dirLightColours[i] * dirLightIntensities[i];
+        vec3 diffuse = diff * light.colour.xyz * light.intensity.x;
 
-        vec4 fragPosLightSpace = dirLightSpaceMatrices[i] * vec4(FragPos, 1.0);
+        vec4 fragPosLightSpace = light.lightSpaceMatrix * vec4(FragPos, 1.0);
 
-        // Transform to NDC [0,1] range
         vec3 proj = fragPosLightSpace.xyz / fragPosLightSpace.w;
         proj = proj * 0.5 + 0.5;
 
@@ -155,35 +150,39 @@ void main() {
         proj.x >= 0.0 && proj.x <= 1.0 &&
         proj.y >= 0.0 && proj.y <= 1.0) {
 
-            shadow = sampleShadow(proj.xy, proj.z, dirLightRects[i], bias);
+            shadow = sampleShadow(proj.xy, proj.z, light.rect, bias);
         }
 
         lighting += (1.0 - shadow) * diffuse;
     }
 
-    // ----- Point Lights -----
-    for (int i = 0; i < numPointLights; ++i) {
-        vec3 lightDir = pointLightPositions[i] - FragPos;
+    // Point lights
+    for (int i = 0; i < pointLights.header.x; ++i) {
+        PointLight light = pointLights.lights[i];
+
+        vec3 lightDir = light.position.xyz - FragPos;
         float distance = length(lightDir);
         lightDir = normalize(lightDir);
 
         float bias = max(0.005 * (1.0 - dot(Normal, lightDir)), 0.0005);
-        bias *= distance / pointLightFarPlanes[i];
+        bias *= distance / light.farPlane.x;
 
         float diff = max(dot(Normal, lightDir), 0.0);
 
-        float attenuation = 1.0 /(pointLightConstants[i] +pointLightLinears[i] * distance +pointLightExponents[i] * distance * distance);
+        float attenuation = 1.0 /(light.params.y + light.params.z * distance + light.params.w * distance * distance);
 
-        float shadow = PointShadowCalculation(FragPos, pointLightPositions[i], pointLightFrontRects[i], pointLightBackRects[i], pointLightFarPlanes[i], bias);
+        float shadow = PointShadowCalculation(FragPos, light.position.xyz, light.fRect, light.bRect, light.farPlane.x, bias);
 
-        vec3 diffuse = diff * pointLightColours[i] * pointLightIntensities[i] * attenuation;
+        vec3 diffuse = diff * light.colour.xyz * light.params.x * attenuation;
 
         lighting += (1.0 - shadow) * diffuse;
     }
 
-    // ----- Spot Lights -----
-    for (int i = 0; i < numSpotLights; ++i) {
-        vec3 lightDir = spotLightPositions[i] - FragPos;
+    // Spot lights
+    for (int i = 0; i < spotLights.header.x; ++i) {
+        SpotLight light = spotLights.lights[i];
+
+        vec3 lightDir = light.position.xyz - FragPos;
         float distance = length(lightDir);
         lightDir = normalize(lightDir);
 
@@ -191,18 +190,17 @@ void main() {
 
         float diff = max(dot(Normal, lightDir), 0.0);
 
-        float theta = dot(lightDir, normalize(-spotLightDirections[i]));
+        float theta = dot(lightDir, normalize(-light.direction.xyz));
         float epsilon = 0.1;
-        float intensity = clamp((theta - spotLightCutoffs[i]) / epsilon, 0.0, 1.0);
+        float intensity = clamp((theta - light.cutoff.x) / epsilon, 0.0, 1.0);
 
-        float attenuation = 1.0 / (spotLightConstants[i] +
-        spotLightLinears[i] * distance +
-        spotLightExponents[i] * distance * distance);
+        float attenuation = 1.0 / (light.params.y +
+        light.params.z * distance +
+        light.params.w * distance * distance);
 
-        vec3 diffuse = diff * spotLightColours[i] * spotLightIntensities[i] * attenuation * intensity;
+        vec3 diffuse = diff * light.colour.xyz * light.params.x * attenuation * intensity;
 
-        vec4 fragPosLightSpace =
-        spotLightSpaceMatrices[i] * vec4(FragPos, 1.0);
+        vec4 fragPosLightSpace = light.lightSpaceMatrix * vec4(FragPos, 1.0);
 
         vec3 proj = fragPosLightSpace.xyz / fragPosLightSpace.w;
         proj = proj * 0.5 + 0.5;
@@ -212,12 +210,7 @@ void main() {
         proj.x >= 0.0 && proj.x <= 1.0 &&
         proj.y >= 0.0 && proj.y <= 1.0) {
 
-            shadow = sampleShadow(
-            proj.xy,
-            proj.z,
-            spotLightRects[i],
-            bias
-            );
+            shadow = sampleShadow(proj.xy, proj.z, light.rect, bias);
         }
 
         lighting += (1.0 - shadow) * diffuse;
@@ -226,4 +219,5 @@ void main() {
     vec3 ambient = 0.05 * Albedo;
 
     FragColour = vec4(ambient + lighting * Albedo, 1.0);
+
 }

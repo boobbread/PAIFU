@@ -19,6 +19,10 @@ public class Scene {
     private List<Entity> entities;
     private List<Light> lights;
 
+    private int pointLights;
+    private int spotLights;
+    private int directionLights;
+
     Vector3f centre;
     float radius;
 
@@ -45,6 +49,29 @@ public class Scene {
 
     public List<Light> getLights() { return lights; }
     public void addLight(Light l) {
+        if (l instanceof PointLight && !(l instanceof SpotLight)) {
+            if (pointLights < 64) {
+                pointLights++;
+            } else {
+                return;
+            }
+        }
+
+        if (l instanceof SpotLight) {
+            if (spotLights < 64) {
+                spotLights++;
+            } else {
+                return;
+            }
+        }
+
+        if (l instanceof PointLight && !(l instanceof SpotLight)) {
+            if (directionLights < 64) {
+                directionLights++;
+            } else {
+                return;
+            }
+        }
         lights.add(l);
         if (l.castsShadows()) {
             if (l instanceof PointLight && !(l instanceof SpotLight)) {

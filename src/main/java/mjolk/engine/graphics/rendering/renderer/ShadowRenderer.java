@@ -46,7 +46,6 @@ public class ShadowRenderer {
 
         pointLightShader.link();
 
-        pointLightShader.createUniform("lightPos");
         pointLightShader.createUniform("model");
         pointLightShader.createUniform("lightView");
         pointLightShader.createUniform("paraboloidSide");
@@ -106,7 +105,6 @@ public class ShadowRenderer {
         shader.unbind();
 
         pointLightShader.bind();
-        pointLightShader.setUniform("lightPos", light.getPosition());
         pointLightShader.setUniform("farPlane", light.getFarPlane());
         pointLightShader.setUniform("nearPlane", light.getNearPlane());
 

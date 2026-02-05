@@ -2,7 +2,6 @@
 layout (location = 0) in vec3 aPos;
 
 uniform mat4 model;
-uniform vec3 lightPos;
 uniform mat4 lightView;
 uniform int paraboloidSide;
 uniform float nearPlane;

@@ -9,11 +9,16 @@ public class FPSCounter {
         frames++;
         long now = System.nanoTime();
 
-        if (now - lastTime >= 1_000_000_000L) {
-            fps = frames;
-            frames = 0;
-            lastTime = now;
-        }
+        // Calculate frame time in nanoseconds
+        long frameTimeNano = now - lastTime;
+
+        // Convert to milliseconds (1 ms = 1,000,000 ns)
+        fps = (int) (frameTimeNano / 1_000_000.0f); // as float milliseconds
+
+        // Alternative: store as nanoseconds if you need more precision
+        // frameTimeNanos = frameTimeNano;
+
+        lastTime = now;
     }
 
     public int getFPS() {

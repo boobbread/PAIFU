@@ -20,6 +20,7 @@ import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.Random;
 import java.util.logging.Logger;
 
 import static mjolk.engine.core.maths.Constants.CAMERA_STEP;
@@ -81,7 +82,7 @@ public class TestGame implements ILogic {
         Vector3f lightPosition = new Vector3f(1f, 1.9f, 2);
         Vector3f lightColour = new Vector3f(1, 1, 1);
         PointLight pointLight = new PointLight(lightColour, lightPosition, 1f, 1f, 0.7f, 1.8f);
-//        scene.addLight(pointLight);
+        scene.addLight(pointLight);
 
         DirectionLight directionLight = new DirectionLight(new Vector3f(1, 1, 1), new Vector3f(-0.3f, -1.0f, -0.2f), 1f);
 //        scene.addLight(directionLight);
@@ -117,6 +118,15 @@ public class TestGame implements ILogic {
         }
         if (window.isKeyPressed(GLFW.GLFW_KEY_SPACE)) {
             cameraInc.y = 1;
+        }
+
+        if (window.isKeyPressed(GLFW.GLFW_KEY_LEFT_CONTROL)) {
+            Random random = new Random();
+            Vector3f lightPosition = new Vector3f(random.nextFloat() * 10f, 1.9f, random.nextFloat() * 10f);
+            Vector3f lightColour = new Vector3f(1, 1, 1);
+            PointLight pointLight = new PointLight(lightColour, lightPosition, 1f, 1f, 0.7f, 1.8f);
+            scene.addLight(pointLight);
+            System.out.println(scene.getPointLights().size());
         }
 
     }
