@@ -18,35 +18,10 @@ public class Texture {
     private int width, height;
 
     public Texture(int id) {
-        LOGGER.info("Texture constructor called");
         this.id = id;
     }
 
-    public Texture(int width, int height, int pixelFormat) throws Exception {
-        LOGGER.info("Texture constructor called");
-        this.id = glGenTextures();
-        this.width = width;
-        this.height = height;
-
-        glBindTexture(GL_TEXTURE_2D, this.id);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24,
-                width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, (ByteBuffer) null);
-
-        // Shadow map comparison
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-        float[] borderColor = {1f, 1f, 1f, 1f};
-        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
-
-    public Texture(int width, int height, int internalFormat, int format, int type) throws Exception {
-        LOGGER.info("Texture constructor called");
+    public Texture(int width, int height, int internalFormat, int format, int type) {
         this.id = glGenTextures();
         this.width = width;
         this.height = height;

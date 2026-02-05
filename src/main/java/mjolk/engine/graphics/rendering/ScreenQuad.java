@@ -21,11 +21,9 @@ public class ScreenQuad {
     private int ebo;
 
     public ScreenQuad() {
-        LOGGER.info("ScreenQuad constructor called");
     }
 
     public void init() {
-        LOGGER.info("ScreenQuad init called");
         float[] vertices = {
             -1f, -1f, 0f, 0f,
             1f, -1f, 1f, 0f,

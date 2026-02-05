@@ -11,10 +11,13 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL40;
 import org.lwjgl.system.MemoryStack;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL30.glBindBufferBase;
+import static org.lwjgl.opengl.GL31.GL_UNIFORM_BUFFER;
 
 public class ShaderManager {
 
@@ -38,9 +41,9 @@ public class ShaderManager {
     public void createUniform(String uniformName) throws Exception {
         int uniformLocation = GL20.glGetUniformLocation(programID, uniformName);
 
-//        if (uniformLocation < 0) {
-//            throw new Exception("Could not get uniform " + uniformName);
-//        }
+        if (uniformLocation < 0) {
+            throw new Exception("Could not get uniform " + uniformName);
+        }
 
         uniforms.put(uniformName, uniformLocation);
     }
@@ -158,7 +161,7 @@ public class ShaderManager {
         setUniform(uniformName + ".exponent", pointLight.getExponent());
     }
 
-    public void setUniform(String uniformName, SpotLight spotLight) throws Exception {
+    public void setUniform(String uniformName, SpotLight spotLight) {
         setUniform(uniformName + ".pl", spotLight.getPointLight());
         setUniform(uniformName + ".coneDirection", spotLight.getConeDirection());
         setUniform(uniformName + ".cutoff", spotLight.getCutoff());
@@ -182,7 +185,7 @@ public class ShaderManager {
         }
     }
 
-    public void setUniform(String uniformName, SpotLight spotLight, int pos) throws Exception {
+    public void setUniform(String uniformName, SpotLight spotLight, int pos) {
         setUniform(uniformName + "[" + pos + "]", spotLight);
     }
 
@@ -214,7 +217,7 @@ public class ShaderManager {
         }
     }
 
-    public void setSpotLights(String baseName, SpotLight[] lights) throws Exception {
+    public void setSpotLights(String baseName, SpotLight[] lights) {
         for (int i = 0; i < lights.length; i++) {
             SpotLight sl = lights[i];
             setUniform(baseName + "Positions[" + i + "]", sl.getPointLight().getPosition());
@@ -382,4 +385,204 @@ public class ShaderManager {
             setUniform(uniformName + "[" + i + "]", vec[i]);
         }
     }
+
+    /**
+     * Creates a Uniform Buffer Object
+     * @param size (bytes) the size of the UBO
+     * @param bindingIndex 1 = point lights, 2 = spotlights, 3 = directional lights
+     * @return (int) The UBO buffer
+     */
+    public int createUBO(int size, int bindingIndex) {
+        if (size <= 0) {
+            throw new IllegalArgumentException("UBO size must be positive and non-zero");
+        }
+
+        if (size % 16 != 0) {
+            throw new IllegalArgumentException("UBO size must be a multiple of 16 bytes");
+        }
+
+        int ubo = glGenBuffers();
+
+        glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+        glBufferData(GL_UNIFORM_BUFFER, size, GL_DYNAMIC_DRAW);
+        glBindBufferBase(GL_UNIFORM_BUFFER, bindingIndex, ubo);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+        return ubo;
+    }
+
+    public void setDirectionLightUBO(DirectionLight[] directionLights, int ubo) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            int numDirLights = Math.min(directionLights.length, 64);
+
+            ByteBuffer buffer = stack.malloc(8208);
+
+            // Header
+            buffer.putInt(numDirLights);
+            buffer.putFloat(0); // Padding
+            buffer.putFloat(0);
+            buffer.putFloat(0);
+
+            // Lights
+            for (int i = 0; i < numDirLights; i++) {
+                DirectionLight l = directionLights[i];
+
+                // vec4 direction
+                buffer.putFloat(l.getDirection().x);
+                buffer.putFloat(l.getDirection().y);
+                buffer.putFloat(l.getDirection().z);
+                buffer.putFloat(0);
+
+                // vec4 colour
+                buffer.putFloat(l.getColour().x);
+                buffer.putFloat(l.getColour().y);
+                buffer.putFloat(l.getColour().z);
+                buffer.putFloat(0);
+
+                // vec4 intensity
+                buffer.putFloat(l.getIntensity());
+                buffer.putFloat(0);
+                buffer.putFloat(0);
+                buffer.putFloat(0);
+
+                // vec4 rect
+                buffer.putFloat(l.getShadowRect().x);
+                buffer.putFloat(l.getShadowRect().y);
+                buffer.putFloat(l.getShadowRect().z);
+                buffer.putFloat(l.getShadowRect().w);
+
+                l.getViewProjectionMatrix().get(buffer);
+            }
+
+            buffer.flip();
+
+            glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, buffer);
+            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        }
+    }
+
+    public void setPointLightUBO(PointLight[] pointLights, int ubo) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            int numPointLights = Math.min(pointLights.length, 64);
+
+            ByteBuffer buffer = stack.malloc(6160);
+
+            // Header
+            buffer.putInt(numPointLights);
+            buffer.putFloat(0);
+            buffer.putFloat(0);
+            buffer.putFloat(0);
+
+            // Lights
+            for (int i = 0; i < numPointLights; i++) {
+                PointLight l = pointLights[i];
+
+                // vec4 pos
+                buffer.putFloat(l.getPosition().x);
+                buffer.putFloat(l.getPosition().y);
+                buffer.putFloat(l.getPosition().z);
+                buffer.putFloat(0);
+
+                // vec4 colour
+                buffer.putFloat(l.getColour().x);
+                buffer.putFloat(l.getColour().y);
+                buffer.putFloat(l.getColour().z);
+                buffer.putFloat(0);
+
+                // vec4 params
+                buffer.putFloat(l.getIntensity());
+                buffer.putFloat(l.getConstant());
+                buffer.putFloat(l.getLinear());
+                buffer.putFloat(l.getExponent());
+
+                // vec4 frontRect
+                buffer.putFloat(l.getFrontRect().x);
+                buffer.putFloat(l.getFrontRect().y);
+                buffer.putFloat(l.getFrontRect().z);
+                buffer.putFloat(l.getFrontRect().w);
+
+                // vec4 backRect
+                buffer.putFloat(l.getBackRect().x);
+                buffer.putFloat(l.getBackRect().y);
+                buffer.putFloat(l.getBackRect().z);
+                buffer.putFloat(l.getBackRect().w);
+
+                // vec4 farPlane
+                buffer.putFloat(l.getFarPlane());
+                buffer.putFloat(0);
+                buffer.putFloat(0);
+                buffer.putFloat(0);
+            }
+
+            buffer.flip();
+
+            glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, buffer);
+            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        }
+    }
+
+    public void setSpotLightUBO(SpotLight[] spotLights, int ubo) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            int numSpotLights = Math.min(spotLights.length, 64);
+
+            ByteBuffer buffer = stack.malloc(10256);
+
+            buffer.putInt(numSpotLights);
+            buffer.putFloat(0);
+            buffer.putFloat(0);
+            buffer.putFloat(0);
+
+            for (int i = 0; i < numSpotLights; i++) {
+                SpotLight l = spotLights[i];
+
+                // vec4 position
+                buffer.putFloat(l.getPosition().x);
+                buffer.putFloat(l.getPosition().y);
+                buffer.putFloat(l.getPosition().z);
+                buffer.putFloat(0);
+
+                // vec4 colour
+                buffer.putFloat(l.getColour().x);
+                buffer.putFloat(l.getColour().y);
+                buffer.putFloat(l.getColour().z);
+                buffer.putFloat(0);
+
+                // vec4 params
+                buffer.putFloat(l.getIntensity());
+                buffer.putFloat(l.getConstant());
+                buffer.putFloat(l.getLinear());
+                buffer.putFloat(l.getExponent());
+
+                // vec4 rect
+                buffer.putFloat(l.getShadowRect().x);
+                buffer.putFloat(l.getShadowRect().y);
+                buffer.putFloat(l.getShadowRect().z);
+                buffer.putFloat(l.getShadowRect().w);
+
+                // vec4 direction
+                buffer.putFloat(l.getConeDirection().x);
+                buffer.putFloat(l.getConeDirection().y);
+                buffer.putFloat(l.getConeDirection().z);
+                buffer.putFloat(0);
+
+                // mat4 lightSpaceMatrix
+                l.getViewProjectionMatrix().get(buffer);
+
+                // vec4 cutoff
+                buffer.putFloat(l.getCutoff());
+                buffer.putFloat(0);
+                buffer.putFloat(0);
+                buffer.putFloat(0);
+            }
+
+            buffer.flip();
+
+            glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+            glBufferSubData(GL_UNIFORM_BUFFER, 0, buffer);
+            glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        }
+    }
+
 }

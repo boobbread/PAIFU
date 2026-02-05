@@ -28,13 +28,11 @@ public class ShadowRenderer {
     private ShadowAtlas atlas;
 
     public ShadowRenderer() throws Exception {
-        LOGGER.info("ShadowRenderer constructor called");
         shader = new ShaderManager();
         pointLightShader = new ShaderManager();
     }
 
     public void init() throws Exception {
-        LOGGER.info("ShadowRenderer init called");
 
         shader.createVertexShader(Utils.loadShader("/shader/shadow_pass.vsh"));
         shader.createFragmentShader(Utils.loadShader("/shader/shadow_pass.fsh"));

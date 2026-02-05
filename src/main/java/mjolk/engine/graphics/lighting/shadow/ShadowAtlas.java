@@ -17,10 +17,10 @@ public class ShadowAtlas {
     private int tilesPerRow = 4;
     private int nextTile = 0;
 
-    public ShadowAtlas() throws Exception {
+    public ShadowAtlas() {
         fbo = glGenFramebuffers();
 
-        depth = new Texture(SIZE, SIZE, GL_DEPTH_COMPONENT24);
+        depth = new Texture(SIZE, SIZE, GL_DEPTH_COMPONENT24, GL_DEPTH_COMPONENT, GL_FLOAT);
         glBindTexture(GL_TEXTURE_2D, depth.getId());
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

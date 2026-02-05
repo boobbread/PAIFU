@@ -16,7 +16,7 @@ public class PointLight extends Light {
     private Vector4f backRect;
 
 
-    public PointLight(Vector3f colour, Vector3f position, float intensity, float constant, float linear, float exponent) throws Exception {
+    public PointLight(Vector3f colour, Vector3f position, float intensity, float constant, float linear, float exponent) {
         super(colour, intensity);
         this.position = position;
         this.constant = constant;
@@ -24,8 +24,6 @@ public class PointLight extends Light {
         this.exponent = exponent;
 
         this.castsShadows = true;
-
-        LOGGER.warning("PointLight created: " + this);
     }
 
     public float getExponent() {

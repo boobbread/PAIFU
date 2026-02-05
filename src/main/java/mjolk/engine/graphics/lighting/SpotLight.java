@@ -12,7 +12,7 @@ public class SpotLight extends PointLight {
 
     private PointLight pointLight;
 
-    public SpotLight(PointLight pointLight, Vector3f coneDirection, float cutoff) throws Exception {
+    public SpotLight(PointLight pointLight, Vector3f coneDirection, float cutoff) {
         super(pointLight.getColour(), pointLight.getPosition(), pointLight.getIntensity(),
                 pointLight.getConstant(), pointLight.getLinear(), pointLight.getExponent());
         this.cutoff = cutoff;
@@ -38,7 +38,7 @@ public class SpotLight extends PointLight {
         this.cutoff = cutoff;
     }
 
-    public PointLight getPointLight() throws Exception {
+    public PointLight getPointLight() {
         return this.pointLight;
     }
 

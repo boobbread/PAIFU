@@ -29,7 +29,6 @@ public class EngineManager {
     private FPSCounter fpsCounter = new FPSCounter();
 
     private void init() throws Exception {
-        LOGGER.info("EngineManager init called");
         GLFW.glfwSetErrorCallback(errorCallback = GLFWErrorCallback.createPrint(System.err));
 
         window = Launcher.getWindow();
@@ -39,8 +38,6 @@ public class EngineManager {
 
         gameLogic.init();
         mouseInput.init();
-
-        LOGGER.info("EngineManager init complete");
     }
 
     public void start() throws Exception {

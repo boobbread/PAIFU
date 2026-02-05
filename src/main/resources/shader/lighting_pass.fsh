@@ -12,41 +12,43 @@ uniform sampler2D gAlbedoSpec;
 uniform vec3 viewPos;
 
 // ----- Directional Lights -----
-uniform int numDirLights;
-uniform vec3 dirLightDirections[1];
-uniform vec3 dirLightColours[1];
-uniform float dirLightIntensities[1];
+uniform int numDirLights; // covered by UBO
+uniform vec3 dirLightDirections[1]; // covered by UBO
+uniform vec3 dirLightColours[1]; // covered by UBO
+uniform float dirLightIntensities[1]; // covered by UBO
 
 // ----- Point Lights -----
-uniform int numPointLights;
-uniform vec3 pointLightPositions[20];
-uniform vec3 pointLightColours[20];
-uniform float pointLightIntensities[20];
-uniform float pointLightConstants[20];
-uniform float pointLightLinears[20];
-uniform float pointLightExponents[20];
+uniform int numPointLights; // covered by UBO
+uniform vec3 pointLightPositions[20]; // covered by UBO
+uniform vec3 pointLightColours[20]; // covered by UBO
+uniform float pointLightIntensities[20]; // covered by UBO
+uniform float pointLightConstants[20]; // covered by UBO
+uniform float pointLightLinears[20]; // covered by UBO
+uniform float pointLightExponents[20]; // covered by UBO
 
 // ----- Spot Lights -----
-uniform int numSpotLights;
-uniform vec3 spotLightPositions[10];
-uniform vec3 spotLightColours[10];
-uniform float spotLightIntensities[10];
-uniform float spotLightConstants[10];
-uniform float spotLightLinears[10];
-uniform float spotLightExponents[10];
-uniform vec3 spotLightDirections[10];
-uniform float spotLightCutoffs[10];
+uniform int numSpotLights; // covered by UBO
+uniform vec3 spotLightPositions[10]; // covered by UBO
+uniform vec3 spotLightColours[10]; // covered by UBO
+uniform float spotLightIntensities[10]; // covered by UBO
+uniform float spotLightConstants[10]; // covered by UBO
+uniform float spotLightLinears[10]; // covered by UBO
+uniform float spotLightExponents[10]; // covered by UBO
+uniform vec3 spotLightDirections[10]; // covered by UBO
+uniform float spotLightCutoffs[10]; // covered by UBO
 
 uniform sampler2D shadowAtlas;
 
-uniform vec4 dirLightRects[1];
-uniform vec4 spotLightRects[10];
-uniform vec4 pointLightFrontRects[20];
-uniform vec4 pointLightBackRects[20];
+uniform vec4 dirLightRects[1]; // covered by UBO
+uniform vec4 spotLightRects[10]; // covered by UBO
+uniform vec4 pointLightFrontRects[20]; // covered by UBO
+uniform vec4 pointLightBackRects[20]; // covered by UBO
 
-uniform mat4 dirLightSpaceMatrices[1];
-uniform mat4 spotLightSpaceMatrices[10];
-uniform float pointLightFarPlanes[20];
+uniform mat4 dirLightSpaceMatrices[1]; // covered by UBO
+uniform mat4 spotLightSpaceMatrices[10]; // covered by UBO
+uniform float pointLightFarPlanes[20]; // covered by UBO
+
+// UBO creates a 9-fold decrease in uniforms 27 -> 3 yippers
 
 float sampleShadow(vec2 uv, float depth, vec4 rect, float bias) {
     vec2 texelSize = 1.0 / vec2(textureSize(shadowAtlas, 0));

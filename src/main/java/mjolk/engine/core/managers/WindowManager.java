@@ -31,7 +31,6 @@ public class WindowManager {
     private final Matrix4f projectionMatrix;
 
     public WindowManager(String title, int width, int height, boolean vSync) {
-        LOGGER.info("WindowManager constructor called");
         this.title = title;
         this.width = width;
         this.height = height;
@@ -41,7 +40,6 @@ public class WindowManager {
     }
 
     public void init() {
-        LOGGER.info("WindowManager init called");
         GLFWErrorCallback.createPrint(System.err).set();
 
         if(!GLFW.glfwInit()) {
@@ -106,8 +104,6 @@ public class WindowManager {
         glEnable(GL11.GL_STENCIL_TEST);
         glEnable(GL11.GL_CULL_FACE);
         GL11.glCullFace(GL11.GL_BACK);
-
-        LOGGER.info("WindowManager init complete");
 
     }
 

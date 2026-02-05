@@ -29,18 +29,18 @@ public class LightingRenderer {
     private ScreenQuad quad;
 
     public LightingRenderer() throws Exception {
-        LOGGER.info("LightingRenderer constructor called");
         shader = new ShaderManager();
         debug = new ShaderManager();
     }
 
     public void init() throws Exception {
-        LOGGER.info("LightingRenderer init called");
         quad = new ScreenQuad();
 
         shader.createVertexShader(Utils.loadShader("/shader/lighting_pass.vsh"));
         shader.createFragmentShader(Utils.loadShader("/shader/lighting_pass.fsh"));
         shader.link();
+
+        shader.createUniform("shadowAtlas");
 
         shader.createUniform("gPosition");
         shader.createUniform("gNormal");
@@ -52,8 +52,6 @@ public class LightingRenderer {
         shader.createDirectionalLightArray("dirLight", 1); // max 10 directional lights
         shader.createPointLightArray("pointLight", 20);      // max 20 point lights
         shader.createSpotLightArray("spotLight", 10);       // max 10 spot lights
-
-        shader.createUniform("shadowAtlas");
 
         shader.createMatrixArray("dirLightSpaceMatrices", 1);
         shader.createMatrixArray("spotLightSpaceMatrices", 10);

@@ -22,13 +22,11 @@ public class GeometryRenderer {
     private ShaderManager shader;
 
     public GeometryRenderer(int width, int height) throws Exception {
-        LOGGER.info("GeometryRenderer constructor called");
         gBuffer = new GBuffer(width, height);
         shader = new ShaderManager();
     }
 
     public void init() throws Exception {
-        LOGGER.info("GeometryRenderer init called");
         gBuffer.init();
         String srcVert = Utils.loadShader("/shader/geometry_pass.vsh");
         String srcFrag = Utils.loadShader("/shader/geometry_pass.fsh");

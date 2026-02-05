@@ -8,7 +8,7 @@ public class DirectionLight extends Light {
 
     private Vector3f direction;
 
-    public DirectionLight(Vector3f colour, Vector3f direction, float intensity) throws Exception {
+    public DirectionLight(Vector3f colour, Vector3f direction, float intensity) {
         super(colour, intensity);
         this.direction = direction;
 

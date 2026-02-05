@@ -40,15 +40,13 @@ public class TestGame implements ILogic {
 
     Vector3f cameraInc;
 
-    public TestGame() throws Exception {
-        LOGGER.info("TestGame constructor called");
+    public TestGame() {
         window = Launcher.getWindow();
         cameraInc = new Vector3f(0, 0, 0);
     }
 
     @Override
     public void init() throws Exception {
-        LOGGER.info("TestGame init called");
 
         geometryRenderer = new GeometryRenderer(Launcher.getWindow().getWidth(), Launcher.getWindow().getHeight());
         shadowRenderer = new ShadowRenderer();
@@ -78,9 +76,6 @@ public class TestGame implements ILogic {
         flat_model.setTexture(new Texture(loader.loadTexture("textures/texture.jpg")), .02f);
         scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1, -1, 1), flat_model));
 
-        Model church_model = loader.loadOBJModel("models/church_2.obj");
-        church_model.setTexture(new Texture(loader.loadTexture("textures/texture.jpg")), .02f);
-        scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(10, -1, 1), church_model));
 
         // Point light
         Vector3f lightPosition = new Vector3f(1f, 1.9f, 2);
@@ -89,13 +84,13 @@ public class TestGame implements ILogic {
 //        scene.addLight(pointLight);
 
         DirectionLight directionLight = new DirectionLight(new Vector3f(1, 1, 1), new Vector3f(-0.3f, -1.0f, -0.2f), 1f);
-        scene.addLight(directionLight);
+//        scene.addLight(directionLight);
 
         SpotLight spotLight = new SpotLight(new PointLight(new Vector3f(1, 0, 0), new Vector3f(1.9f, 1.9f, 2), 1f, 1f, 0.09f, 0.032f), new Vector3f(-1, -1, 0), (float) Math.toRadians(30));
-//        scene.addLight(spotLight);
+        scene.addLight(spotLight);
 
         SpotLight spotLight2 = new SpotLight(new PointLight(new Vector3f(0, 0, 1), new Vector3f(0.1f, 1.9f, 2), 1f, 1f, 0.09f, 0.032f), new Vector3f(1, -1, 0), (float) Math.toRadians(30));
-//        scene.addLight(spotLight2);
+        scene.addLight(spotLight2);
 
         LOGGER.info("TestGame init complete");
     }
@@ -122,19 +117,6 @@ public class TestGame implements ILogic {
         }
         if (window.isKeyPressed(GLFW.GLFW_KEY_SPACE)) {
             cameraInc.y = 1;
-        }
-
-        if (window.isKeyPressed(GLFW.GLFW_KEY_UP)) {
-            scene.getPointLights().getFirst().getPosition().z += 0.001f;
-        }
-        if (window.isKeyPressed(GLFW.GLFW_KEY_DOWN)) {
-            scene.getPointLights().getFirst().getPosition().z -= 0.001f;
-        }
-        if (window.isKeyPressed(GLFW.GLFW_KEY_LEFT)) {
-            scene.getPointLights().getFirst().getPosition().x -= 0.001f;
-        }
-        if (window.isKeyPressed(GLFW.GLFW_KEY_RIGHT)) {
-            scene.getPointLights().getFirst().getPosition().x += 0.001f;
         }
 
     }

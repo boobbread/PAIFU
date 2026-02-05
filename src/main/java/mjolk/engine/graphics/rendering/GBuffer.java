@@ -22,14 +22,12 @@ public class GBuffer {
 
     private int width, height;
 
-    public GBuffer(int width, int height) throws Exception {
-        LOGGER.info("GBuffer constructor called");
+    public GBuffer(int width, int height) {
         this.width = width;
         this.height = height;
     }
 
     public void init() throws Exception {
-        LOGGER.info("GBuffer init called");
         fbo = GL30.glGenFramebuffers();
         GL30.glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
