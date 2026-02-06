@@ -38,6 +38,14 @@
             <version>${lwjgl.version}</version>
         </dependency>
 
+        <!-- OpenAL bindings -->
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-openal</artifactId>
+            <version>${lwjgl.version}</version>
+        </dependency>
+
+
         <!-- GLFW -->
         <dependency>
             <groupId>org.lwjgl</groupId>
@@ -69,6 +77,13 @@
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-opengl</artifactId>
+            <version>${lwjgl.version}</version>
+            <classifier>natives-linux</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-openal</artifactId>
             <version>${lwjgl.version}</version>
             <classifier>natives-linux</classifier>
         </dependency>

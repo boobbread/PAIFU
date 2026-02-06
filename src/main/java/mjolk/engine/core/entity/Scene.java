@@ -1,6 +1,8 @@
 package mjolk.engine.core.entity;
 
 import mjolk.engine.Launcher;
+import mjolk.engine.audio.AudioSystem;
+import mjolk.engine.audio.Sound;
 import mjolk.engine.graphics.camera.Camera;
 import mjolk.engine.graphics.lighting.DirectionLight;
 import mjolk.engine.graphics.lighting.Light;
@@ -18,6 +20,7 @@ public class Scene {
     private Camera camera;
     private List<Entity> entities;
     private List<Light> lights;
+    private AudioSystem audioSystem;
 
     private int pointLights;
     private int spotLights;
@@ -27,16 +30,20 @@ public class Scene {
     float radius;
 
     // Constructors
-    public Scene(Camera camera) {
+    public Scene(Camera camera, AudioSystem audioSystem) {
         this.camera = camera;
         this.entities = new ArrayList<>();
         this.lights = new ArrayList<>();
+        this.audioSystem = audioSystem;
     }
 
     // Methods
     public void update(float delta) {
         for (Entity e : entities) e.update();
         for (Light l : lights) l.update();
+
+        audioSystem.updateListener(camera);
+        audioSystem.update();
     }
 
     // Getters and setters

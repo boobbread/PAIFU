@@ -1,6 +1,9 @@
 package mjolk.engine.core;
 
 import mjolk.engine.Launcher;
+import mjolk.engine.audio.AudioLoader;
+import mjolk.engine.audio.AudioManager;
+import mjolk.engine.audio.Sound;
 import mjolk.engine.core.entity.*;
 import mjolk.engine.graphics.lighting.DirectionLight;
 import mjolk.engine.graphics.lighting.SpotLight;
@@ -25,6 +28,8 @@ import java.util.logging.Logger;
 
 import static mjolk.engine.core.maths.Constants.CAMERA_STEP;
 import static mjolk.engine.core.maths.Constants.MOUSE_SENSITIVITY;
+import static org.lwjgl.openal.AL10.*;
+
 public class TestGame implements ILogic {
 
     private static final Logger LOGGER = Logger.getLogger(TestGame.class.getName());
@@ -34,16 +39,16 @@ public class TestGame implements ILogic {
 
     private GeometryRenderer geometryRenderer;
     private LightingRenderer lightingRenderer;
-
-
-
     private ShadowRenderer shadowRenderer;
+
+    private AudioManager audioManager;
 
     Vector3f cameraInc;
 
     public TestGame() {
         window = Launcher.getWindow();
         cameraInc = new Vector3f(0, 0, 0);
+        audioManager = new AudioManager();
     }
 
     @Override
@@ -63,7 +68,7 @@ public class TestGame implements ILogic {
         camera.setPosition(0,7.5f,5);
         camera.setRotation(45, 180, 0);
 
-        scene = new Scene(camera);
+        scene = new Scene(camera, audioManager.getSystem());
 
         Model bunny_model = loader.loadOBJModel("models/bunny.obj");
         bunny_model.setTexture(new Texture(loader.loadTexture("textures/texture.jpg")), .02f);
@@ -118,15 +123,6 @@ public class TestGame implements ILogic {
         }
         if (window.isKeyPressed(GLFW.GLFW_KEY_SPACE)) {
             cameraInc.y = 1;
-        }
-
-        if (window.isKeyPressed(GLFW.GLFW_KEY_LEFT_CONTROL)) {
-            Random random = new Random();
-            Vector3f lightPosition = new Vector3f(random.nextFloat() * 10f, 1.9f, random.nextFloat() * 10f);
-            Vector3f lightColour = new Vector3f(1, 1, 1);
-            PointLight pointLight = new PointLight(lightColour, lightPosition, 1f, 1f, 0.7f, 1.8f);
-            scene.addLight(pointLight);
-            System.out.println(scene.getPointLights().size());
         }
 
     }

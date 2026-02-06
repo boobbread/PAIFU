@@ -77,7 +77,7 @@ public class EngineManager {
         isRunning = false;
     }
 
-    public void input(float interval) {
+    public void input(float interval) throws Exception {
         gameLogic.input(interval);
         mouseInput.input();
     }

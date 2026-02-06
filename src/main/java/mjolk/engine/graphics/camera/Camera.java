@@ -95,4 +95,22 @@ public class Camera {
     public void setPerspective(Perspective perspective) {
         this.perspective = perspective;
     }
+
+    public Vector3f getForward() {
+        float pitch = (float) Math.toRadians(rotation.x);
+        float yaw   = (float) Math.toRadians(rotation.y);
+
+        Vector3f forward = new Vector3f(
+                (float) (Math.cos(pitch) * Math.sin(yaw)),
+                (float) Math.sin(pitch),
+                (float) (Math.cos(pitch) * Math.cos(yaw))
+        );
+
+        return forward.normalize();
+    }
+
+    public Vector3f getUp() {
+        return new Vector3f(0, 1, 0);
+    }
+
 }
