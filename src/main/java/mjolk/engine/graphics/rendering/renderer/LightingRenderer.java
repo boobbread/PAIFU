@@ -111,7 +111,7 @@ public class LightingRenderer {
         shader.setSpotLightUBO(spotLights, spotLightsUBO);
 
         quad.render();
-//
+
 //        debug.bind();
 //        glBindTexture(GL_TEXTURE_2D, shadowRenderer.getAtlas().getDepthTexture().getId());
 //        debug.setUniform("shadowAtlas", 0);

@@ -2,23 +2,31 @@ package mjolk.engine.core.entity;
 
 import mjolk.engine.Launcher;
 import mjolk.engine.audio.AudioSystem;
-import mjolk.engine.audio.Sound;
+import mjolk.engine.core.entity.components.Component;
+import mjolk.engine.core.entity.components.RenderableComponent;
+import mjolk.engine.core.entity.components.TransformComponent;
+import mjolk.engine.core.utils.Pair;
 import mjolk.engine.graphics.camera.Camera;
 import mjolk.engine.graphics.lighting.DirectionLight;
 import mjolk.engine.graphics.lighting.Light;
 import mjolk.engine.graphics.lighting.PointLight;
 import mjolk.engine.graphics.lighting.SpotLight;
+import mjolk.engine.graphics.mesh.Model;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Scene {
 
     // Fields
     private Camera camera;
-    private List<Entity> entities;
+    public Map<Entity, Pair<Matrix4f, Model>> renderQueue;
+    public Map<Integer, Entity> entities;
     private List<Light> lights;
     private AudioSystem audioSystem;
 
@@ -32,15 +40,25 @@ public class Scene {
     // Constructors
     public Scene(Camera camera, AudioSystem audioSystem) {
         this.camera = camera;
-        this.entities = new ArrayList<>();
         this.lights = new ArrayList<>();
         this.audioSystem = audioSystem;
+        this.entities = new HashMap<>();
+        this.renderQueue = new HashMap<>();
     }
 
     // Methods
     public void update(float delta) {
-        for (Entity e : entities) e.update();
         for (Light l : lights) l.update();
+
+        for (Entity e : entities.values()) {
+            if (e.hasComponent(RenderableComponent.class)) {
+                e.getComponent(RenderableComponent.class).update(delta, this);
+            }
+
+            if (e.hasComponent(TransformComponent.class)) {
+                e.getComponent(TransformComponent.class).update(delta, this);
+            }
+        }
 
         audioSystem.updateListener(camera);
         audioSystem.update();
@@ -49,11 +67,6 @@ public class Scene {
     // Getters and setters
     public Camera getCamera() { return camera; }
     public void setCamera(Camera camera) { this.camera = camera; }
-
-    public List<Entity> getEntities() { return entities; }
-    public void addEntity(Entity e) { entities.add(e); }
-    public void removeEntity(Entity e) { entities.remove(e); }
-
     public List<Light> getLights() { return lights; }
     public void addLight(Light l) {
         if (l instanceof PointLight && !(l instanceof SpotLight)) {
@@ -86,14 +99,9 @@ public class Scene {
                 Vector4f backRect = Launcher.getGame().getShadowRenderer().getAtlas().allocateTile();
                 ((PointLight) l).setFrontRect(frontRect);
                 ((PointLight) l).setBackRect(backRect);
-
-                System.out.println(frontRect);
-                System.out.println(backRect);
             } else {
-                System.out.println("rect for non-point lights called");
                 Vector4f rect = Launcher.getGame().getShadowRenderer().getAtlas().allocateTile();
                 l.setShadowRect(rect);
-                System.out.println(rect);
             }
         }
     }

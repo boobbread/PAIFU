@@ -1,4 +1,4 @@
 package mjolk.engine.core.entity.components;
 
-public class SoundComponent {
+public class SolidComponent {
 }

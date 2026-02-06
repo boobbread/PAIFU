@@ -5,6 +5,9 @@ import mjolk.engine.audio.AudioLoader;
 import mjolk.engine.audio.AudioManager;
 import mjolk.engine.audio.Sound;
 import mjolk.engine.core.entity.*;
+import mjolk.engine.core.entity.components.MoveableComponent;
+import mjolk.engine.core.entity.components.RenderableComponent;
+import mjolk.engine.core.entity.components.TransformComponent;
 import mjolk.engine.graphics.lighting.DirectionLight;
 import mjolk.engine.graphics.lighting.SpotLight;
 import mjolk.engine.graphics.rendering.renderer.ShadowRenderer;
@@ -72,31 +75,37 @@ public class TestGame implements ILogic {
 
         Model bunny_model = loader.loadOBJModel("models/bunny.obj");
         bunny_model.setTexture(new Texture(loader.loadTexture("textures/texture.jpg")), .02f);
-        scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1f, 0, 2), bunny_model));
+
+        Entity bunny_entity = new Entity();
+        bunny_entity.addComponent(new RenderableComponent(bunny_model));
+        bunny_entity.addComponent(new TransformComponent(new Vector3f(1f, 0, 2), new Vector3f(0, 180, 0), 1f));
+        bunny_entity.addComponent(new MoveableComponent());
+
+        scene.entities.put(1, bunny_entity);
 
         Model box_model = loader.loadOBJModel("models/box.obj");
         box_model.setTexture(new Texture(loader.loadTexture("textures/texture.jpg")), .02f);
-        scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1, 0, 2), box_model));
 
-        Model flat_model = loader.loadOBJModel("models/flat.obj");
-        flat_model.setTexture(new Texture(loader.loadTexture("textures/texture.jpg")), .02f);
-        scene.addEntity(new Entity(1, new Vector3f(0, 180, 0), new Vector3f(1, -1, 1), flat_model));
+        Entity box_entity = new Entity();
+        box_entity.addComponent(new RenderableComponent(box_model));
+        box_entity.addComponent(new TransformComponent(new Vector3f(1f, 0, 2), new Vector3f(0, 180, 0), 1f));
 
+        scene.entities.put(2, box_entity);
 
         // Point light
         Vector3f lightPosition = new Vector3f(1f, 1.9f, 2);
         Vector3f lightColour = new Vector3f(1, 1, 1);
-        PointLight pointLight = new PointLight(lightColour, lightPosition, 1f, 1f, 0.7f, 1.8f);
+        PointLight pointLight = new PointLight(lightColour, lightPosition, 3f, 1f, 0.7f, 1.8f);
         scene.addLight(pointLight);
 
         DirectionLight directionLight = new DirectionLight(new Vector3f(1, 1, 1), new Vector3f(-0.3f, -1.0f, -0.2f), 1f);
-//        scene.addLight(directionLight);
+        scene.addLight(directionLight);
 
         SpotLight spotLight = new SpotLight(new PointLight(new Vector3f(1, 0, 0), new Vector3f(1.9f, 1.9f, 2), 1f, 1f, 0.09f, 0.032f), new Vector3f(-1, -1, 0), (float) Math.toRadians(30));
-        scene.addLight(spotLight);
+//        scene.addLight(spotLight);
 
         SpotLight spotLight2 = new SpotLight(new PointLight(new Vector3f(0, 0, 1), new Vector3f(0.1f, 1.9f, 2), 1f, 1f, 0.09f, 0.032f), new Vector3f(1, -1, 0), (float) Math.toRadians(30));
-        scene.addLight(spotLight2);
+//        scene.addLight(spotLight2);
 
         LOGGER.info("TestGame init complete");
     }
@@ -125,6 +134,25 @@ public class TestGame implements ILogic {
             cameraInc.y = 1;
         }
 
+
+        for (Entity e : scene.entities.values()) {
+            if (e.hasComponent(MoveableComponent.class)) {
+                if (window.isKeyPressed(GLFW.GLFW_KEY_UP)) {
+                    e.getComponent(MoveableComponent.class).positionVelocity = new Vector3f(0, 1, 0);
+                } else if (window.isKeyPressed(GLFW.GLFW_KEY_DOWN)) {
+                    e.getComponent(MoveableComponent.class).positionVelocity = new Vector3f(0, -1, 0);
+                } else if (window.isKeyPressed(GLFW.GLFW_KEY_LEFT)) {
+                    e.getComponent(MoveableComponent.class).angularVelocity = new Vector3f(0, 90f, 0);
+                } else if (window.isKeyPressed(GLFW.GLFW_KEY_RIGHT)) {
+                    e.getComponent(MoveableComponent.class).angularVelocity = new Vector3f(0, -90f, 0);
+                } else {
+                    e.getComponent(MoveableComponent.class).positionVelocity = new Vector3f(0, 0, 0);
+                    e.getComponent(MoveableComponent.class).angularVelocity = new Vector3f(0, 0, 0);
+                }
+            }
+        }
+
+
     }
 
     @Override
@@ -146,6 +174,8 @@ public class TestGame implements ILogic {
         geometryRenderer.geometryPass(scene);
         shadowRenderer.render(scene);
         lightingRenderer.render(scene, geometryRenderer, shadowRenderer);
+
+        scene.renderQueue.clear();
 
     }
 

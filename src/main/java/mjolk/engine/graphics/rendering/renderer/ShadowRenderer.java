@@ -9,6 +9,7 @@ import mjolk.engine.graphics.lighting.Light;
 import mjolk.engine.graphics.lighting.PointLight;
 import mjolk.engine.graphics.lighting.SpotLight;
 import mjolk.engine.graphics.lighting.shadow.ShadowAtlas;
+import mjolk.engine.graphics.mesh.Model;
 import mjolk.engine.graphics.shader.ShaderManager;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -81,12 +82,14 @@ public class ShadowRenderer {
 
             shader.setUniform("lightSpaceMatrix", lightSpaceMatrix);
 
-            for (Entity e : scene.getEntities()) {
-                Matrix4f model = Transformation.createTransformationMatrix(e);
-                shader.setUniform("model", model);
+            for (Entity e : scene.renderQueue.keySet()) {
+                Matrix4f modelMatrix = scene.renderQueue.get(e).first;
+                Model model = scene.renderQueue.get(e).second;
 
-                glBindVertexArray(e.getModel().getId());
-                glDrawElements(GL_TRIANGLES, e.getModel().getVertexCount(), GL_UNSIGNED_INT, 0);
+                shader.setUniform("model", modelMatrix);
+
+                glBindVertexArray(model.getId());
+                glDrawElements(GL_TRIANGLES, model.getVertexCount(), GL_UNSIGNED_INT, 0);
                 glBindVertexArray(0);
             }
 
@@ -97,7 +100,6 @@ public class ShadowRenderer {
         glViewport(0, 0,
                 Launcher.getWindow().getWidth(),
                 Launcher.getWindow().getHeight());
-
     }
 
     private void renderPointLightShadow(Scene scene, PointLight light) {
@@ -142,14 +144,13 @@ public class ShadowRenderer {
         pointLightShader.setUniform("paraboloidSide", hemi);
         pointLightShader.setUniform("lightView", view);
 
-        for (Entity e : scene.getEntities()) {
-            Matrix4f model = Transformation.createTransformationMatrix(e);
-            pointLightShader.setUniform("model", model);
+        for (Entity e : scene.renderQueue.keySet()) {
+            Matrix4f modelMatrix = scene.renderQueue.get(e).first;
+            Model model = scene.renderQueue.get(e).second;
+            pointLightShader.setUniform("model", modelMatrix);
 
-            glBindVertexArray(e.getModel().getId());
-            glDrawElements(GL_TRIANGLES,
-                    e.getModel().getVertexCount(),
-                    GL_UNSIGNED_INT, 0);
+            glBindVertexArray(model.getId());
+            glDrawElements(GL_TRIANGLES, model.getVertexCount(), GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);
         }
     }

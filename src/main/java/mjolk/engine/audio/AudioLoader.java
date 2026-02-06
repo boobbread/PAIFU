@@ -39,8 +39,6 @@ public class AudioLoader {
         int alFormat = getOpenALFormat(audioFormat.getChannels(), audioFormat.getSampleSizeInBits());
         int sampleRate = (int) audioFormat.getSampleRate();
 
-        System.out.println("Channels: " + audioFormat.getChannels());
-
         int bufferId = alGenBuffers();
         alBufferData(bufferId, alFormat, buffer, sampleRate);
 

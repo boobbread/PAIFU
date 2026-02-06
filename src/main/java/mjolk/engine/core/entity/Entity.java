@@ -1,78 +1,45 @@
 package mjolk.engine.core.entity;
 
+import mjolk.engine.core.entity.components.Component;
 import mjolk.engine.graphics.mesh.Model;
 import org.joml.Vector3f;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class Entity {
 
-    private Model model;
-    private Vector3f pos, rotation;
-    private float scale;
+    public int id;
 
-    /**
-     * @param scale The scale the model is rendered in (optional - defaults to one)
-     * @param rotation The rotation of the model (optional - defaults to none)
-     * @param pos The world-relative position of the model (optional - defaults to (0, 0, 0))
-     * @param model The model rendered for the entity (non-optional)
-     */
-    public Entity(float scale, Vector3f rotation, Vector3f pos, Model model) {
-        this.scale = scale;
-        this.rotation = rotation;
-        this.pos = pos;
-        this.model = model;
+    private Map<Class<? extends Component>, Component> components = new HashMap<>();
+
+    public Entity() {
     }
 
-    /**
-     * Default scale, position and rotation
-     * @param model The model rendered for the entity
-     * @see #Entity(float, Vector3f, Vector3f, Model)
-     */
-    public Entity(Model model) {
-        this(1, new Vector3f(0,0,0), new Vector3f(0,0,0), model);
+    public <T extends Component> void addComponent(T component) {
+        components.put(component.getClass(), component);
+        component.setEntity(this);
     }
 
-    public void update() {
-        // Space for future
+    public <T extends Component> void removeComponent(T component) {
+        components.remove(component.getClass(), component);
     }
 
-    public void incPos(float x, float y, float z) {
-        this.pos.x += x;
-        this.pos.y += y;
-        this.pos.z += z;
+    public <T extends Component> T getComponent(Class<T> type) {
+        return type.cast(components.get(type));
     }
 
-    public void setPos(float x, float y, float z) {
-        this.pos.x = x;
-        this.pos.y = y;
-        this.pos.z = z;
+    public <T extends Component> boolean hasComponent(Class<T> type) {
+        return components.containsKey(type);
     }
 
-
-    public void incRotation(float x, float y, float z) {
-        this.rotation.x += x;
-        this.rotation.y += y;
-        this.rotation.z += z;
+    public List<String> getComponentNames() {
+        return components.keySet()
+                .stream()
+                .map(Class::getSimpleName)
+                .toList();
     }
 
-    public void setRotation(float x, float y, float z) {
-        this.rotation.x = x;
-        this.rotation.y = y;
-        this.rotation.z = z;
-    }
-
-    public Model getModel() {
-        return model;
-    }
-
-    public Vector3f getPos() {
-        return pos;
-    }
-
-    public Vector3f getRotation() {
-        return rotation;
-    }
-
-    public float getScale() {
-        return scale;
-    }
 }

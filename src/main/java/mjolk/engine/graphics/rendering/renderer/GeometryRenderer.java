@@ -2,6 +2,7 @@ package mjolk.engine.graphics.rendering.renderer;
 
 import mjolk.engine.Launcher;
 import mjolk.engine.core.entity.Entity;
+import mjolk.engine.graphics.mesh.Model;
 import mjolk.engine.graphics.shader.ShaderManager;
 import mjolk.engine.core.entity.Scene;
 import mjolk.engine.core.maths.Transformation;
@@ -55,15 +56,18 @@ public class GeometryRenderer {
 
         shader.setUniform("texture_diffuse1", 0);
 
-        for (Entity e : scene.getEntities()) {
-            Matrix4f model = Transformation.createTransformationMatrix(e);
-            shader.setUniform("model", model);
-            shader.setUniform("materialSpecular", e.getModel().getMaterial().getSpecularColour());
+        for (Entity e : scene.renderQueue.keySet()) {
 
-            e.getModel().getTexture().bind(0);
+            Matrix4f modelMatrix = scene.renderQueue.get(e).first;
+            Model model = scene.renderQueue.get(e).second;
 
-            glBindVertexArray(e.getModel().getId());
-            GL11.glDrawElements(GL11.GL_TRIANGLES, e.getModel().getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
+            shader.setUniform("model", modelMatrix);
+            shader.setUniform("materialSpecular", model.getMaterial().getSpecularColour());
+
+            model.getTexture().bind(0);
+
+            glBindVertexArray(model.getId());
+            GL11.glDrawElements(GL11.GL_TRIANGLES, model.getVertexCount(), GL11.GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);
         }
 
