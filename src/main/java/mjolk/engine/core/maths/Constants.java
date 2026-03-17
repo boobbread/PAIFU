@@ -17,4 +17,6 @@ public class Constants {
 
     public static final Vector3f AMBIENT_LIGHT = new Vector3f(0.3f, 0.3f, 0.3f);
 
+    public static boolean debug = false;
+
 }

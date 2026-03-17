@@ -96,16 +96,16 @@ public class TestGame implements ILogic {
         Vector3f lightPosition = new Vector3f(1f, 1.9f, 2);
         Vector3f lightColour = new Vector3f(1, 1, 1);
         PointLight pointLight = new PointLight(lightColour, lightPosition, 3f, 1f, 0.7f, 1.8f);
-        scene.addLight(pointLight);
+//        scene.addLight(pointLight);
 
         DirectionLight directionLight = new DirectionLight(new Vector3f(1, 1, 1), new Vector3f(-0.3f, -1.0f, -0.2f), 1f);
         scene.addLight(directionLight);
 
         SpotLight spotLight = new SpotLight(new PointLight(new Vector3f(1, 0, 0), new Vector3f(1.9f, 1.9f, 2), 1f, 1f, 0.09f, 0.032f), new Vector3f(-1, -1, 0), (float) Math.toRadians(30));
-//        scene.addLight(spotLight);
+        scene.addLight(spotLight);
 
         SpotLight spotLight2 = new SpotLight(new PointLight(new Vector3f(0, 0, 1), new Vector3f(0.1f, 1.9f, 2), 1f, 1f, 0.09f, 0.032f), new Vector3f(1, -1, 0), (float) Math.toRadians(30));
-//        scene.addLight(spotLight2);
+        scene.addLight(spotLight2);
 
         LOGGER.info("TestGame init complete");
     }

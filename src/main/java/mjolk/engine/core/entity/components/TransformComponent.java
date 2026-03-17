@@ -20,6 +20,11 @@ public class TransformComponent extends Component {
         this.entity = entity;
     }
 
+    /**
+     *
+     * @param deltaTime
+     * @param scene
+     */
     @Override
     public void update(float deltaTime, Scene scene) {
         if (entity.hasComponent(MoveableComponent.class)) {
